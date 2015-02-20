@@ -228,7 +228,7 @@ int main(int argc, char* argv[]){
 	      double U = gr->getBranch(i).getRateA();
 	      sdn(e) = SIGy0(e,e) + 2*Lo(e,i)*SIGy0(e,i)+ Lo(e,i)*Lo(e,i)*SIGy0(i,i);
 	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      else sdn(e)=sdn(e)/U;
+	      //	      else sdn(e)=sdn(e)/U;
 	    }
 	    vec z0n=gc.risk(f0n,sdn,L,p,pc);
 	    double r0n = sum(z0n);
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]){
 	      double U = gr->getBranch(i).getRateA();
 	      sdn(e) = SIGy1(e,e) + 2*Lo(e,i)*SIGy1(e,i)+ Lo(e,i)*Lo(e,i)*SIGy1(i,i);
 	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      else sdn(e)=sdn(e)/U;
+	      //	      else sdn(e)=sdn(e)/U;
 	    }
 	    vec z1n=gc.risk(f1n,sdn,L,p,pc);
 	    double r1n = sum(z1n);
@@ -337,7 +337,7 @@ int main(int argc, char* argv[]){
 	      double U = gr->getBranch(i).getRateA();
 	      sdn(e) = SIGycc(e,e) + 2*Lo(e,i)*SIGycc(e,i)+ Lo(e,i)*Lo(e,i)*SIGycc(i,i);
 	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      else sdn(e)=sdn(e)/U;
+	      //	      else sdn(e)=sdn(e)/U;
 	    }
 	    vec zn=gc.risk(fn,sdn,L,p,pc);
 	    double rn = sum(zn);
@@ -393,7 +393,7 @@ int main(int argc, char* argv[]){
 	      double U = gr->getBranch(i).getRateA();
 	      sdn(e) = SIGy3(e,e) + 2*Lo(e,i)*SIGy3(e,i)+ Lo(e,i)*Lo(e,i)*SIGy3(i,i);
 	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      else sdn(e)=sdn(e)/U;
+	      //	      else sdn(e)=sdn(e)/U;
 	    }
 	    vec z3n=gc.risk(f3n,sdn,L,p,pc);
 	    double r3n = sum(z3n);
@@ -445,7 +445,7 @@ int main(int argc, char* argv[]){
 	      double U = gr->getBranch(i).getRateA();
 	      sdn(e) = SIGy4(e,e) + 2*Lo(e,i)*SIGy4(e,i)+ Lo(e,i)*Lo(e,i)*SIGy4(i,i);
 	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      else sdn(e)=sdn(e)/U;
+	      //	      else sdn(e)=sdn(e)/U;
 	    }
 	    vec z4n=gc.risk(f4n,sdn,L,p,pc);
 	    double r4n = sum(z4n);
@@ -599,7 +599,7 @@ int main(int argc, char* argv[]){
 
 
 
-
+    /*
     ofstream myopf( "opf.json" );
     ofstream mycc( "cc.json" );
     ofstream myjcc( "jcc.json" );
@@ -614,15 +614,24 @@ int main(int argc, char* argv[]){
     myopf.close();
     mycc.close();
     myjcc.close();
-
+    */
     
     check.t().print("check: ");
         
-    ofstream myopa( "opa.out" );
-    iopa opa(gr,&gc,opaL,opap);
-    
+    ofstream myopf( "opf.out" );
+    ofstream myopfn1( "opfn1.out" );
+    ofstream mycc( "cc.out" );
+    ofstream myjcc( "jcc.out" );
+    ofstream myjccn1( "jccn1.out" );
+    iopa opa(gr,&gc,opaL,opap,L,p);
 
-    for(int n=0;n<Nl;n++){
+    opa.runTrials(myopf, &n1, f0, g0, SIGy0,T,o0);
+    opa.runTrials(myopfn1, &n1, f1, g1, SIGy1,T,o1);
+    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
+    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
+    opa.runTrials(myjccn1, &n1, f4, g4, SIGy4,T,o4);
+
+    /*    for(int n=0;n<Nl;n++){
       if(check(n)){
 	vec f1n = n1.getN1(n,f1,g1);
 	vec z1n=gc.risk(f1n,sd1,L,p,pc);
@@ -632,9 +641,72 @@ int main(int argc, char* argv[]){
 	opa.runTrials(myopa, z1n,n,T);
       }
     }
-     
-    myopa.close();
+    */
+    myopf.close();
+    myopfn1.close();
+    mycc.close();
+    myjcc.close();
+    myjccn1.close();
+
+    ofstream mycomp( "comp.out" );
+
+    mycomp<<" --- \t --- RISK 2nd--- \t ---\n"<<endl;
+
+	mycomp<<"OPF"<<"\t"<<s0<<endl;
+	mycomp<<"C0: "<<o0<<endl;
+	mycomp<<"r0 - "<<r0<<endl;
+	mycomp << "count = " << stats_r0.count() << endl;
+	mycomp << "mean = " << stats_r0.mean() << endl;
+	mycomp << "stdv  = " << stats_r0.stddev()  << endl;
+	mycomp << "min  = " << stats_r0.min()  << endl;
+	mycomp << "max  = " << stats_r0.max()  << endl;
+	mycomp<<endl;
+
+
+	mycomp<<"OPF n1"<<"\t"<<s1<<endl;
+	mycomp<<"C1: "<<o1<<endl;
+	mycomp<<"r1 - "<<r1<<endl;
+	mycomp << "count = " << stats_r1.count() << endl;
+	mycomp << "mean = " << stats_r1.mean() << endl;
+	mycomp << "stdv  = " << stats_r1.stddev()  << endl;
+	mycomp << "min  = " << stats_r1.min()  << endl;
+	mycomp << "max  = " << stats_r1.max()  << endl;
+	mycomp<<endl;
+
+
+	mycomp<<"CC"<<"\t"<<s<<endl;
+	mycomp<<"C: "<<o<<endl;
+	mycomp<<"r - "<<r<<endl;
+	mycomp << "count = " << stats_risk.count() << endl;
+	mycomp << "mean = " << stats_risk.mean() << endl;
+	mycomp << "stdv  = " << stats_risk.stddev()  << endl;
+	mycomp << "min  = " << stats_risk.min()  << endl;
+	mycomp << "max  = " << stats_risk.max()  << endl;
+	mycomp<<endl;
+
+	mycomp<<"SJ"<<"\t"<<s3<<endl;
+	mycomp<<"C3: "<<o3<<endl;
+	mycomp<<"r3 - "<<r3<<endl;
+	mycomp << "count = " << stats_r3.count() << endl;
+	mycomp << "mean = " << stats_r3.mean() << endl;
+	mycomp << "stdv  = " << stats_r3.stddev()  << endl;
+	mycomp << "min  = " << stats_r3.min()  << endl;
+	mycomp << "max  = " << stats_r3.max()  << endl;
+	mycomp<<endl;
+
+	mycomp<<"SJ N1"<<"\t"<<s4<<endl;
+	mycomp<<"C4: "<<o4<<endl;
+	mycomp<<"r4 - "<<r4<<endl;
+	mycomp << "count = " << stats_r4.count() << endl;
+	mycomp << "mean = " << stats_r4.mean() << endl;
+	mycomp << "stdv  = " << stats_r4.stddev()  << endl;
+	mycomp << "min  = " << stats_r4.min()  << endl;
+	mycomp << "max  = " << stats_r4.max()  << endl;
+	mycomp<<endl;
+
+	mycomp<<"\n\n";
     
+	mycomp.close();
 
 
       }

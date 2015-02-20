@@ -21,6 +21,7 @@ class ijn1 : public ijcc {
   double getCutsLine(int i){ return sum(_addCut.col(i)); }
   double getTotalCuts();
   mat getVar(){ return _var; }
+  mat getLo(){ return _L; }
 
   class nowinner: public exception 
   {
