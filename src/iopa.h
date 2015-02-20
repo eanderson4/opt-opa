@@ -10,9 +10,9 @@ using namespace std;
 class iopa {
 
  public:
- iopa( grid * gr, gridcalc * gc,  vec z, double L, double p ) : _gr(gr), _gc(gc),_z(z),_L(L),_p(p) { }
+ iopa( grid * gr, gridcalc * gc, double L, double p ) : _gr(gr), _gc(gc),_L(L),_p(p) { }
 
-  void runTrials(double num);
+  void runTrials(ostream & out,vec z,int N,double num,running_stat<double> st_tot);
 
  private:
   
@@ -20,7 +20,6 @@ class iopa {
   gridcalc * _gc;
 
 
-  vec _z;
   double _L;
   double _p;
 

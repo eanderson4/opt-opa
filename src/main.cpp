@@ -15,8 +15,8 @@ using namespace std;
 
 int main(int argc, char* argv[]){
 
-  if(argc<=12){
-    cout<<"cmd: pow case/30.db <m0> <m1> <e0> <e1> <L> <p> <B> <T>\n"
+  if(argc<=14){
+    cout<<"cmd: pow case/30.db <m0> <m1> <e0> <e1> <L> <p> <B> <T> <L2> <p2>\n"
 	<<"\trun main for case30\n"
 	<<"\t<m0> base capacity multiplier\n"
 	<<"\t<m1> contingency capacity multiplier\n"
@@ -27,7 +27,9 @@ int main(int argc, char* argv[]){
 	<<"\t<L> no risk intercept\n"
 	<<"\t<p> probability of failure at nominal\n"
 	<<"\t<B> Variance budget\n"
-	<<"\t<T> num trials"<<endl;
+	<<"\t<T> num trials\n"
+	<<"\t<L2> no risk intercept (OPA)\n"
+	<<"\t<p2> probability of failure at nominal (OPA)\n"<<endl;
     return 1;
   }
 
@@ -43,6 +45,17 @@ int main(int argc, char* argv[]){
   double B=atof(argv[11]);
   double pc=.85;
   int T = atoi(argv[12]);
+
+  double opaL,opap;
+  if(argc>12){
+    opaL=atof(argv[13]);
+    opap=atof(argv[14]);
+  }
+  else {
+    opaL=L;
+    opap=.5;
+  }
+   
 
   ///  int sn=atoi(argv[7]); //standard deviation test
 
@@ -161,7 +174,7 @@ int main(int argc, char* argv[]){
 
   double TG;
   
-  
+  vec ones(Nm,1,fill::ones);  
   
 
   
@@ -172,12 +185,6 @@ int main(int argc, char* argv[]){
 
     isj nom(gr, &gc, SIG, indexM, L, p, pc, 1);
     nom.lineLimitStatus(true);
-
-
-
-
-      
-
 
 
 
@@ -194,12 +201,15 @@ int main(int argc, char* argv[]){
 	vec f0=gc.convert(rnom->getF());
 	vec g0=gc.convert(rnom->getG());
 	vec beta0=nom.getBeta();
-	vec z0=gc.risk(f0,SIGy.diag(),L,p,pc);
-	double r0 = sum(z0);
+	mat term0 = A*(Cg*beta0*ones.t() - Cm);    
+	mat SIGy0 = term0*SIG*term0.t();
+	vec sd0 = SIGy0.diag();
+	vec z0=gc.risk(f0,sd0,L,p,pc);
+ 	double r0 = sum(z0);
 	vec p0=gc.lineprob(f0,SIGy.diag());
 	IloCplex::CplexStatus s0=rnom->getStatus();
 	TG = accu(g0);
-	vec sd0 = nom.getSD();
+
 
 	vec fU0(Nl);
 	vec sdU0(Nl);
@@ -213,7 +223,14 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f0n = n1.getN1(i,f0,g0);
-	    vec z0n=gc.risk(f0n,SIGy.diag(),L,p,pc);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy0(e,e) + 2*Lo(e,i)*SIGy0(e,i)+ Lo(e,i)*Lo(e,i)*SIGy0(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z0n=gc.risk(f0n,sdn,L,p,pc);
 	    double r0n = sum(z0n);
 	    stats_r0(r0n);
 	  }
@@ -238,12 +255,15 @@ int main(int argc, char* argv[]){
 	vec f1=gc.convert(rnom1->getF());
 	vec g1=gc.convert(rnom1->getG());
 	vec beta1=nom.getBeta();
-	vec z1=gc.risk(f1,SIGy.diag(),L,p,pc);
+	mat term1 = A*(Cg*beta1*ones.t() - Cm);    
+	mat SIGy1 = term1*SIG*term1.t();
+	vec sd1 = SIGy1.diag();
+	vec z1=gc.risk(f1,sd1,L,p,pc);
 	double r1 = sum(z1);
 	vec pnom1=gc.lineprob(f1,SIGy.diag());
 	IloCplex::CplexStatus s1=rnom1->getStatus();
 	TG = accu(g1);
-	vec sd1 = nom.getSD();
+
 
 	vec fU1(Nl);
 	vec sdU1(Nl);
@@ -257,7 +277,14 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f1n = n1.getN1(i,f1,g1);
-	    vec z1n=gc.risk(f1n,SIGy.diag(),L,p,pc);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy1(e,e) + 2*Lo(e,i)*SIGy1(e,i)+ Lo(e,i)*Lo(e,i)*SIGy1(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z1n=gc.risk(f1n,sdn,L,p,pc);
 	    double r1n = sum(z1n);
 	    stats_r1(r1n);
 	  }
@@ -284,11 +311,14 @@ int main(int argc, char* argv[]){
 	vec f=gc.convert(rcc->getF());
 	vec g=gc.convert(rcc->getG());
 	vec beta=cc.getBeta();
-	vec sd=cc.getSD();
+	mat term = A*(Cg*beta*ones.t() - Cm);    
+	mat SIGycc = term*SIG*term.t();
+	vec sd = SIGycc.diag();
 	vec z=gc.risk(f,sd,L,p,pc);
 	double r = sum(z);
 	vec p1=gc.lineprob(f,sd);
 	IloCplex::CplexStatus s=rcc->getStatus();
+
 
 	vec fU(Nl);
 	vec sdU(Nl);
@@ -302,7 +332,14 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec fn = n1.getN1(i,f,g);
-	    vec zn=gc.risk(fn,sd,L,p,pc);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGycc(e,e) + 2*Lo(e,i)*SIGycc(e,i)+ Lo(e,i)*Lo(e,i)*SIGycc(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec zn=gc.risk(fn,sdn,L,p,pc);
 	    double rn = sum(zn);
 	    stats_risk(rn);
 	  }
@@ -329,11 +366,15 @@ int main(int argc, char* argv[]){
 	vec f3=gc.convert(rsj->getF());
 	vec g3=gc.convert(rsj->getG());
 	vec beta3=sj.getBeta();
-	vec sd3=sj.getSD();
+	mat term3 = A*(Cg*beta3*ones.t() - Cm);    
+	mat SIGy3 = term3*SIG*term3.t();
+	vec sd3 = SIGy3.diag();
 	vec z3=gc.risk(f3,sd3,L,p,pc);
 	double r3 = sum(z3);
 	vec p3=gc.lineprob(f3,sd3);
 	IloCplex::CplexStatus s3=rsj->getStatus();
+
+
 
 	vec fU3(Nl);
 	vec sdU3(Nl);
@@ -347,7 +388,14 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f3n = n1.getN1(i,f3,g3);
-	    vec z3n=gc.risk(f3n,sd3,L,p,pc);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy3(e,e) + 2*Lo(e,i)*SIGy3(e,i)+ Lo(e,i)*Lo(e,i)*SIGy3(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z3n=gc.risk(f3n,sdn,L,p,pc);
 	    double r3n = sum(z3n);
 	    stats_r3(r3n);
 	  }
@@ -372,7 +420,9 @@ int main(int argc, char* argv[]){
 	vec f4=gc.convert(rsjn->getF());
 	vec g4=gc.convert(rsjn->getG());
 	vec beta4=sjn.getBeta();
-	vec sd4=sjn.getSD();
+	mat term4 = A*(Cg*beta4*ones.t() - Cm);    
+	mat SIGy4 = term4*SIG*term4.t();
+	vec sd4 = SIGy4.diag();
 	vec z4=gc.risk(f4,sd4,L,p,pc);
 	double r4 = sum(z4);
 	vec p4=gc.lineprob(f4,sd4);
@@ -390,7 +440,14 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f4n = n1.getN1(i,f4,g4);
-	    vec z4n=gc.risk(f4n,sd4,L,p,pc);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy4(e,e) + 2*Lo(e,i)*SIGy4(e,i)+ Lo(e,i)*Lo(e,i)*SIGy4(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z4n=gc.risk(f4n,sdn,L,p,pc);
 	    double r4n = sum(z4n);
 	    stats_r4(r4n);
 	  }
@@ -558,35 +615,27 @@ int main(int argc, char* argv[]){
     mycc.close();
     myjcc.close();
 
-
+    
     check.t().print("check: ");
+        
+    ofstream myopa( "opa.out" );
+    iopa opa(gr,&gc,opaL,opap);
     
-            vec f1n = n1.getN1(35,f1,g1);
-        vec z1n=gc.risk(f1n,sd1,L,p,pc);
 
-        z1n.t().print("Risk: ");
-	
-	z1n(35)=1;
-    
-	//	f1n.print("f35: ");
-	iopa opa(gr,&gc,z1n,L,.5);
-	opa.runTrials(1000);
-    
-    /*
-    for(int i=0;i<Nl;i++){
-      if(check(i)==1){
-	vec f1n = n1.getN1(i,f1,g1);
+    for(int n=0;n<Nl;n++){
+      if(check(n)){
+	vec f1n = n1.getN1(n,f1,g1);
 	vec z1n=gc.risk(f1n,sd1,L,p,pc);
-	double r1n = sum(z1n);
-		cout<<"Line: "<<i<<", Risk: "<<r1n<<endl;
-		f1n.t().print("Flow: ");
-		z1n.t().print("Risk: ");
+	z1n(n)=1;
+	z1n.t().print("Risk: ");	
+	//	f1n.print("f35: ");
+	opa.runTrials(myopa, z1n,n,T);
       }
     }
-    */
-    //    f4.print("f4: ");
-    //    sqrt(sd4).print("sd4: ");
-    //    z4.print("z4: ");
+     
+    myopa.close();
+    
+
 
       }
       catch(IloException& e){

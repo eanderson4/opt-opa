@@ -108,17 +108,17 @@ void igrid::modGrid( del_g mod ){
     for(int i=0; i<nB; i++){
       if(mod.getStatus(i)==false){
 	// line i is outaged
-	cout<<"Line "<<i<<" - ";
+	//	cout<<"Line "<<i<<" - ";
 	getF()[i].setBounds(0,0);
 	getBranchFlow()[i].setBounds(-IloInfinity,IloInfinity );
 	getPhaseAngle()[i].setBounds(-IloInfinity,IloInfinity );
-	cout<<"f=0, phase angles relaxed"<<endl;
+	//	cout<<"f=0, phase angles relaxed"<<endl;
 	ss.str("");
-	ss<<"f"<<i<<"[0,0]";
+	//	ss<<"f"<<i<<"[0,0]";
 	getF()[i].setName( ss.str().c_str() );
-	cout<<getF()[i]<<endl;
-	cout<<getBranchFlow()[i]<<endl;
-	cout<<getPhaseAngle()[i]<<endl;
+	//	cout<<getF()[i]<<endl;
+	//	cout<<getBranchFlow()[i]<<endl;
+	//	cout<<getPhaseAngle()[i]<<endl;
       }
     }
     
@@ -141,7 +141,7 @@ void igrid::modGrid( del_g mod ){
     for(int i=0; i<nB; i++){
       if(mod.getStatus(i)==false){
 	// line i is outaged
-	cout<<"Line "<<i<<" - ";
+	//	cout<<"Line "<<i<<" - ";
 	_gr->getBranch(i).setStatus(0);	
       }
     }
@@ -179,18 +179,18 @@ void igrid::unmodGrid( del_g mod ){
     for(int i=0; i<nB; i++){
       if(mod.getStatus(i)==false){
 	// line i was outaged repair
-	cout<<"Line "<<i<<" - ";
+	//	cout<<"Line "<<i<<" - ";
 	double U = _gr->getBranch(i).getRateA();
 	getF()[i].setBounds(-U,U);
 	getBranchFlow()[i].setBounds(0,0);
 	getPhaseAngle()[i].setBounds(-360,360 );
-	cout<<"f unbounded, phase angles tight"<<endl;
+	//	cout<<"f unbounded, phase angles tight"<<endl;
 	ss.str("");
 	ss<<"f"<<i<<"["<<-U<<","<<U<<"]";
 	getF()[i].setName( ss.str().c_str() );
-	cout<<getF()[i]<<endl;
-	cout<<getBranchFlow()[i]<<endl;
-	cout<<getPhaseAngle()[i]<<endl;
+	//	cout<<getF()[i]<<endl;
+	//	cout<<getBranchFlow()[i]<<endl;
+	//	cout<<getPhaseAngle()[i]<<endl;
       }
     }
     
