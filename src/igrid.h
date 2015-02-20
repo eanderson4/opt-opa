@@ -17,6 +17,7 @@ class igrid : public ibase {
   virtual ~igrid() {  }
 
   virtual rgrid * solveModel( isolve * is=NULL);
+  virtual rgrid * solveModel( IloCplex * cplex);
   int addCost();
   int addCost(IloNumVarArray beta,double sigD);
   void addSlack(IloNumArray _g_nom, IloNumArray slack);

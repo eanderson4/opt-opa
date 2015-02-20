@@ -200,6 +200,21 @@ vec gridcalc::risk(vec f,vec varf,double L, double p, double pc){
 
   return z;
 }
+vec gridcalc::risk(vec f,double L, double p){
+  int N=f.n_elem;
+  vec z(N,fill::zeros);
+  ranvar rv;
+  for(int i=0;i<N;i++){
+    double U = _gr->getBranch(i).getRateA();
+    if( f(i)<= L*U ) z(i)=0;
+    else {
+      z(i) = (p/(1-L))*f(i)/U - p*L/(1-L);
+    }
+   
+  }
+
+  return z;
+}
 
 vec gridcalc::lineprob(vec f,vec varf){
   int N=f.n_elem;

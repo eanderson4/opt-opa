@@ -34,6 +34,36 @@ rgrid *  igrid::solveModel( isolve * is){
   return rg;
 }
 
+rgrid *  igrid::solveModel(IloCplex * cplex){
+
+  rgrid * rg = new rgrid();
+  
+  time_t tstart;
+  tstart = clock();
+  
+  if (cplex->solve()){
+      float tot= float(clock() - tstart) / CLOCKS_PER_SEC;
+      cout<<"\n - Solve info -"<<endl;
+      cout<<"MODEL solved in "<<tot<<endl;
+      rg->getSolveInfo(cplex,tot);
+      getBaseResults(cplex, rg);
+      if(have_loadshed) getIshed().getLoadShed(cplex, rg);
+
+      cout<<"STATUS: "<<rg->getStatus()<<endl;
+      cout<<"OBJECTIVE: "<<cplex->getObjValue()<<"\n"<<endl;
+      double genCost = getIcost().getCost(_gr,rg->getG());
+      rg->setGenCost(genCost);
+      
+  }
+  else{
+    cerr<<"Not solved"<<endl;
+    cerr<<cplex->getStatus()<<endl;
+  }
+
+  
+  return rg;
+}
+
 
 void igrid::allowLoadShed(){
   have_loadshed = _ils.buildLoadShed(_gr,getModel(),getNodalBalance());

@@ -9,6 +9,7 @@
 #include "isjn.h"
 #include "ijn1.h"
 #include "in1.h"
+#include "iopa.h"
 
 using namespace std;
 
@@ -183,7 +184,7 @@ int main(int argc, char* argv[]){
       try{
 	//	igrid nom(gr);
 	//	nom.addCost();
-
+	//	in1 nom1(gr, SIGy, Hw,m1);
 	rgrid * rnom = nom.solveModel(&is);
 
 	
@@ -226,6 +227,50 @@ int main(int argc, char* argv[]){
 	cout << "stdv  = " << stats_r0.stddev()  << endl;
 	cout << "min  = " << stats_r0.min()  << endl;
 	cout << "max  = " << stats_r0.max()  << endl;
+	cout<<endl;
+
+
+	in1 nom1(gr, SIGy, Hw,m1);
+	nom1.addCost();
+	rgrid * rnom1 = nom1.solveModel(&is);
+	
+	double o1=rnom1->getObjective();
+	vec f1=gc.convert(rnom1->getF());
+	vec g1=gc.convert(rnom1->getG());
+	vec beta1=nom.getBeta();
+	vec z1=gc.risk(f1,SIGy.diag(),L,p,pc);
+	double r1 = sum(z1);
+	vec pnom1=gc.lineprob(f1,SIGy.diag());
+	IloCplex::CplexStatus s1=rnom1->getStatus();
+	TG = accu(g1);
+	vec sd1 = nom.getSD();
+
+	vec fU1(Nl);
+	vec sdU1(Nl);
+	for(int i=1;i<Nl;i++){
+	  double U = gr->getBranch(i).getRateA();
+	  fU1(i) = abs(f1(i))/U;
+	  sdU1(i) = sd1(i)/U;
+	}
+	
+	running_stat<double> stats_r1;
+	for(int i=0;i<Nl;i++){
+	  if(check(i)==1){
+	    vec f1n = n1.getN1(i,f1,g1);
+	    vec z1n=gc.risk(f1n,SIGy.diag(),L,p,pc);
+	    double r1n = sum(z1n);
+	    stats_r1(r1n);
+	  }
+	}
+	
+	cout<<"OPF n1"<<"\t"<<s1<<endl;
+	cout<<"C1: "<<o1<<endl;
+	cout<<"r1 - "<<r1<<endl;
+	cout << "count = " << stats_r1.count() << endl;
+	cout << "mean = " << stats_r1.mean() << endl;
+	cout << "stdv  = " << stats_r1.stddev()  << endl;
+	cout << "min  = " << stats_r1.min()  << endl;
+	cout << "max  = " << stats_r1.max()  << endl;
 	cout<<endl;
 	
 
@@ -280,15 +325,58 @@ int main(int argc, char* argv[]){
 	rgrid * rsj = sj.solveModel(&is);
 
 	
-	double o4=rsj->getObjective();
-	vec f4=gc.convert(rsj->getF());
-	vec g4=gc.convert(rsj->getG());
-	vec beta4=sj.getBeta();
-	vec sd4=sj.getSD();
+	double o3=rsj->getObjective();
+	vec f3=gc.convert(rsj->getF());
+	vec g3=gc.convert(rsj->getG());
+	vec beta3=sj.getBeta();
+	vec sd3=sj.getSD();
+	vec z3=gc.risk(f3,sd3,L,p,pc);
+	double r3 = sum(z3);
+	vec p3=gc.lineprob(f3,sd3);
+	IloCplex::CplexStatus s3=rsj->getStatus();
+
+	vec fU3(Nl);
+	vec sdU3(Nl);
+	for(int i=0;i<Nl;i++){
+	  double U = gr->getBranch(i).getRateA();
+	  fU3(i) = abs(f3(i))/U;
+	  sdU3(i) = sd3(i)/U;
+	}
+	
+	running_stat<double> stats_r3;
+	for(int i=0;i<Nl;i++){
+	  if(check(i)==1){
+	    vec f3n = n1.getN1(i,f3,g3);
+	    vec z3n=gc.risk(f3n,sd3,L,p,pc);
+	    double r3n = sum(z3n);
+	    stats_r3(r3n);
+	  }
+	}
+	
+	cout<<"SJ"<<"\t"<<s3<<endl;
+	cout<<"C3: "<<o3<<endl;
+	cout<<"r3 - "<<r3<<endl;
+	cout << "count = " << stats_r3.count() << endl;
+	cout << "mean = " << stats_r3.mean() << endl;
+	cout << "stdv  = " << stats_r3.stddev()  << endl;
+	cout << "min  = " << stats_r3.min()  << endl;
+	cout << "max  = " << stats_r3.max()  << endl;
+	cout<<endl;
+
+
+	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
+	rgrid * rsjn = sjn.solveModel(&is);
+
+	
+	double o4=rsjn->getObjective();
+	vec f4=gc.convert(rsjn->getF());
+	vec g4=gc.convert(rsjn->getG());
+	vec beta4=sjn.getBeta();
+	vec sd4=sjn.getSD();
 	vec z4=gc.risk(f4,sd4,L,p,pc);
 	double r4 = sum(z4);
 	vec p4=gc.lineprob(f4,sd4);
-	IloCplex::CplexStatus s4=rsj->getStatus();
+	IloCplex::CplexStatus s4=rsjn->getStatus();
 
 	vec fU4(Nl);
 	vec sdU4(Nl);
@@ -308,7 +396,7 @@ int main(int argc, char* argv[]){
 	  }
 	}
 	
-	cout<<"SJ"<<"\t"<<s4<<endl;
+	cout<<"SJ N1"<<"\t"<<s4<<endl;
 	cout<<"C4: "<<o4<<endl;
 	cout<<"r4 - "<<r4<<endl;
 	cout << "count = " << stats_r4.count() << endl;
@@ -339,10 +427,73 @@ int main(int argc, char* argv[]){
     cout<<"U eps: "<<rv.ginv(eps,L,p,pc)<<endl;
 
     cout<<"\n\n";
+
+    cout<<" --- \t --- RISK 2nd--- \t ---\n"<<endl;
+
+	cout<<"OPF"<<"\t"<<s0<<endl;
+	cout<<"C0: "<<o0<<endl;
+	cout<<"r0 - "<<r0<<endl;
+	cout << "count = " << stats_r0.count() << endl;
+	cout << "mean = " << stats_r0.mean() << endl;
+	cout << "stdv  = " << stats_r0.stddev()  << endl;
+	cout << "min  = " << stats_r0.min()  << endl;
+	cout << "max  = " << stats_r0.max()  << endl;
+	cout<<endl;
+
+
+	cout<<"OPF n1"<<"\t"<<s1<<endl;
+	cout<<"C1: "<<o1<<endl;
+	cout<<"r1 - "<<r1<<endl;
+	cout << "count = " << stats_r1.count() << endl;
+	cout << "mean = " << stats_r1.mean() << endl;
+	cout << "stdv  = " << stats_r1.stddev()  << endl;
+	cout << "min  = " << stats_r1.min()  << endl;
+	cout << "max  = " << stats_r1.max()  << endl;
+	cout<<endl;
+
+
+	cout<<"CC"<<"\t"<<s<<endl;
+	cout<<"C: "<<o<<endl;
+	cout<<"r - "<<r<<endl;
+	cout << "count = " << stats_risk.count() << endl;
+	cout << "mean = " << stats_risk.mean() << endl;
+	cout << "stdv  = " << stats_risk.stddev()  << endl;
+	cout << "min  = " << stats_risk.min()  << endl;
+	cout << "max  = " << stats_risk.max()  << endl;
+	cout<<endl;
+
+	cout<<"SJ"<<"\t"<<s3<<endl;
+	cout<<"C3: "<<o3<<endl;
+	cout<<"r3 - "<<r3<<endl;
+	cout << "count = " << stats_r3.count() << endl;
+	cout << "mean = " << stats_r3.mean() << endl;
+	cout << "stdv  = " << stats_r3.stddev()  << endl;
+	cout << "min  = " << stats_r3.min()  << endl;
+	cout << "max  = " << stats_r3.max()  << endl;
+	cout<<endl;
+
+	cout<<"SJ N1"<<"\t"<<s4<<endl;
+	cout<<"C4: "<<o4<<endl;
+	cout<<"r4 - "<<r4<<endl;
+	cout << "count = " << stats_r4.count() << endl;
+	cout << "mean = " << stats_r4.mean() << endl;
+	cout << "stdv  = " << stats_r4.stddev()  << endl;
+	cout << "min  = " << stats_r4.min()  << endl;
+	cout << "max  = " << stats_r4.max()  << endl;
+	cout<<endl;
+
+	cout<<"\n\n";
+
+
     cout<<" --- \t --- RISK --- \t ---\n"<<endl;
     cout<<"OPF"<<endl;
     cout << "risk: "<<endl;
     cout << r0 <<endl;
+    cout<<endl;
+
+    cout<<"OPF n1"<<endl;
+    cout << "risk: "<<endl;
+    cout << r1 <<endl;
     cout<<endl;
 
     cout<<"CC"<<endl;
@@ -353,6 +504,10 @@ int main(int argc, char* argv[]){
 
     cout<<"SJ"<<endl;
     cout << "risk: "<<endl;
+    cout << r3 <<endl;
+    cout<<endl;
+    cout<<"SJ N1"<<endl;
+    cout << "risk: "<<endl;
     cout << r4 <<endl;
     cout<<endl;
 
@@ -362,6 +517,11 @@ int main(int argc, char* argv[]){
     cout << "costs: "<<endl;
     cout << o0 <<endl;
     cout<<endl;
+    cout<<"OPF n1"<<endl;
+    cout << "costs: "<<endl;
+    cout << o1 <<endl;
+    cout<<endl;
+
 
     cout<<"CC"<<endl;
     cout << "costs: "<<endl;
@@ -371,8 +531,17 @@ int main(int argc, char* argv[]){
 
     cout<<"SJ"<<endl;
     cout << "costs: "<<endl;
+    cout << o3 <<endl;
+    cout<<endl;
+
+    cout<<"SJ N1"<<endl;
+    cout << "costs: "<<endl;
     cout << o4 <<endl;
     cout<<endl;
+
+
+
+
 
     ofstream myopf( "opf.json" );
     ofstream mycc( "cc.json" );
@@ -382,13 +551,39 @@ int main(int argc, char* argv[]){
     //    ji.print(gr,rsj);
     ji.printDetail(myopf,gr,rnom,L,p,sqrt(TV),o0,r0,f0,g0,beta0,sd0,z0,p0);
     ji.printDetail(mycc,gr,rcc,L,p,sqrt(TV),o,r,f,g,beta,sd,z,p1);
-    ji.printDetail(myjcc,gr,rsj,L,p,sqrt(TV),o4,r4,f4,g4,beta4,sd4,z4,p4);
+    ji.printDetail(myjcc,gr,rsjn,L,p,sqrt(TV),o4,r4,f4,g4,beta4,sd4,z4,p4);
     //    ji.printDetail(cerr,gr,rsj,L,p,o4,r4,f4,g4,beta4,sd4,z4,p4);
 
     myopf.close();
     mycc.close();
     myjcc.close();
 
+
+    check.t().print("check: ");
+    
+            vec f1n = n1.getN1(35,f1,g1);
+        vec z1n=gc.risk(f1n,sd1,L,p,pc);
+
+        z1n.t().print("Risk: ");
+	
+	z1n(35)=1;
+    
+	//	f1n.print("f35: ");
+	iopa opa(gr,&gc,z1n,L,.5);
+	opa.runTrials(1000);
+    
+    /*
+    for(int i=0;i<Nl;i++){
+      if(check(i)==1){
+	vec f1n = n1.getN1(i,f1,g1);
+	vec z1n=gc.risk(f1n,sd1,L,p,pc);
+	double r1n = sum(z1n);
+		cout<<"Line: "<<i<<", Risk: "<<r1n<<endl;
+		f1n.t().print("Flow: ");
+		z1n.t().print("Risk: ");
+      }
+    }
+    */
     //    f4.print("f4: ");
     //    sqrt(sd4).print("sd4: ");
     //    z4.print("z4: ");

@@ -39,6 +39,7 @@ class gridcalc
   //  vec getSlackDist(){ return getCm()*_slack; }
   vec convert(IloNumArray na);
   vec risk(vec f,vec varf, double L, double p, double pc);
+  vec risk(vec f, double L, double p);
   vec lineprob(vec f, vec varf);
   vec dz(double f,double varf, double L, double p, double pc);
   vec getN1(int n, vec y0, vec g,mat Hw);
