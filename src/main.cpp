@@ -176,7 +176,12 @@ int main(int argc, char* argv[]){
   
   vec ones(Nm,1,fill::ones);  
   
-
+  vec ztemp(Nl,fill::zeros);
+  //    iopa opa(gr,&gc,opaL,opap,L,p);
+  //    opa.runTrials(cout,ztemp,15,10);
+    
+  //    double test;
+  //    cin>>test;
   
 
     ijn1 n1(gr,  SIGy,Hw,L,p,pc,eps,epsN);
@@ -245,7 +250,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r0.min()  << endl;
 	cout << "max  = " << stats_r0.max()  << endl;
 	cout<<endl;
-
+	cerr<<"opf\t"<<o0<<"\t"<<r0<<"\t"<<stats_r0.mean()<<"\t"<<stats_r0.max()<<endl;
 
 	in1 nom1(gr, SIGy, Hw,m1);
 	nom1.addCost();
@@ -299,7 +304,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r1.min()  << endl;
 	cout << "max  = " << stats_r1.max()  << endl;
 	cout<<endl;
-	
+	cerr<<"opfn1\t"<<o1<<"\t"<<r1<<"\t"<<stats_r1.mean()<<"\t"<<stats_r1.max()<<endl;	
 
 
 	
@@ -354,7 +359,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_risk.min()  << endl;
 	cout << "max  = " << stats_risk.max()  << endl;
 	cout<<endl;
-	
+	cerr<<"cc\t"<<o<<"\t"<<r<<"\t"<<stats_risk.mean()<<"\t"<<stats_risk.max()<<endl;	
 
 	
 
@@ -410,11 +415,12 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r3.min()  << endl;
 	cout << "max  = " << stats_r3.max()  << endl;
 	cout<<endl;
-
+	cerr<<"jcc\t"<<o3<<"\t"<<r3<<"\t"<<stats_r3.mean()<<"\t"<<stats_r3.max()<<endl;
 
 	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
 	rgrid * rsjn = sjn.solveModel(&is);
 
+	cout<<"HERE"<<endl;
 	
 	double o4=rsjn->getObjective();
 	vec f4=gc.convert(rsjn->getF());
@@ -462,7 +468,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r4.min()  << endl;
 	cout << "max  = " << stats_r4.max()  << endl;
 	cout<<endl;
-	
+	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;	
 
     
 
@@ -496,7 +502,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r0.min()  << endl;
 	cout << "max  = " << stats_r0.max()  << endl;
 	cout<<endl;
-	cerr<<"opf\t"<<o0<<"\t"<<r0<<"\t"<<stats_r0.mean()<<"\t"<<stats_r0.max()<<endl;
+
 
 
 	cout<<"OPF n1"<<"\t"<<s1<<endl;
@@ -508,7 +514,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r1.min()  << endl;
 	cout << "max  = " << stats_r1.max()  << endl;
 	cout<<endl;
-	cerr<<"opfn1\t"<<o1<<"\t"<<r1<<"\t"<<stats_r1.mean()<<"\t"<<stats_r1.max()<<endl;
+
 
 
 	cout<<"CC"<<"\t"<<s<<endl;
@@ -520,7 +526,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_risk.min()  << endl;
 	cout << "max  = " << stats_risk.max()  << endl;
 	cout<<endl;
-	cerr<<"cc\t"<<o<<"\t"<<r<<"\t"<<stats_risk.mean()<<"\t"<<stats_risk.max()<<endl;
+
 
 	cout<<"SJ"<<"\t"<<s3<<endl;
 	cout<<"C3: "<<o3<<endl;
@@ -531,7 +537,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r3.min()  << endl;
 	cout << "max  = " << stats_r3.max()  << endl;
 	cout<<endl;
-	cerr<<"jcc\t"<<o3<<"\t"<<r3<<"\t"<<stats_r3.mean()<<"\t"<<stats_r3.max()<<endl;
+
 
 	cout<<"SJ N1"<<"\t"<<s4<<endl;
 	cout<<"C4: "<<o4<<endl;
@@ -542,7 +548,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r4.min()  << endl;
 	cout << "max  = " << stats_r4.max()  << endl;
 	cout<<endl;
-	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;
+
 	cerr<<"\n";
 
 	cout<<"\n\n";

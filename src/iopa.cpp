@@ -11,7 +11,7 @@ void iopa::runTrials(ostream & out,vec z,int N,double num){
   igrid ig(_gr);
   ig.allowLoadShed();
   ig.addCost();
-  
+
   
   isolve is;
   is.setSolver(IloCplex::Dual,IloCplex::Dual);
@@ -104,6 +104,7 @@ void iopa::runTrials(ostream & out,vec z,int N,double num){
 	//cplex failed to solve, catalog and move on
 	cerr<<"Not solved"<<endl;
 	cerr<<cplex.getStatus()<<endl;
+	cerr<<cplex.getCplexStatus()<<endl;
 	cerr<<mod<<endl;
 	record=false;
       }
@@ -217,7 +218,7 @@ void iopa::runTrials(ostream & out,ijn1 * n1,vec f, vec g, mat SIG,double num,do
 	z=_gc->risk(fn,sdn,_Lr,_pr,.85);
 	double r = sum(z);
 	z(n)=1;
-	z.t().print("Risk: ");	
+	//	z.t().print("Risk: ");	
 
 
 

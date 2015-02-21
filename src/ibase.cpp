@@ -89,8 +89,8 @@ int ibase::buildModel(grid * gr ) {
       int bus = gr->getBusNum(gj.getBus());
       _nodalBalance[bus].setExpr(_nodalBalance[bus].getExpr() - _g[j]);
       if( status <= 0) _g[j].setBounds(0,0);  //gen out of service
-      //      else _g[j].setBounds(0,pmax);  //DONT RESPECT LOWER LIMIT
-            else _g[j].setBounds(pmin,pmax);  //gen in service respect gen limits
+            else _g[j].setBounds(0,pmax);  //DONT RESPECT LOWER LIMIT
+      //            else _g[j].setBounds(pmin,pmax);  //gen in service respect gen limits
       ss.str("");
       ss<<"g"<<j;
       _g[j].setName( ss.str().c_str() );
@@ -269,7 +269,7 @@ int ished::buildLoadShed(grid * gr, IloModel * mod, IloRangeArray nb){
     double gs = bi.getGs();
     
     nb[i].setExpr( nb[i].getExpr() - _ls[i] );
-    _ls[i].setBounds(0,(pd+gs));
+    //    _ls[i].setBounds(0,(pd+gs));
   }
 
    

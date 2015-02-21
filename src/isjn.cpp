@@ -15,12 +15,22 @@ rgrid *  isjn::solveModel( isolve * is){
   
   if(is!=NULL) is->setCplexParams(&cplex);
   int n=0;
-  double large=20;
+
 
   cout<<"Check: "<<sum(_check)<<" / "<<getGrid()->numBranches()<<endl;
+  
+  vec check2(Nl,fill::zeros);
+  bool fullcheck=false;
+
 
   if (cplex.solve()){
     bool systemfail=true;
+    mat Am = getA()*getCm();
+    vec ones(Nm,1,fill::ones);
+    vec onesL(Nl,1,fill::ones);
+    mat ker = ones.t()*getSIGm()*ones;
+    mat AmSone = Am*getSIGm()*ones;
+    mat Ag = getA()*getCg();
     while(systemfail){
       n++; if (n>100) throw itlimit;  
       cout<<" --SJN-- --- Iteration - "<<n<<" ----- "<<endl;
@@ -36,18 +46,18 @@ rgrid *  isjn::solveModel( isolve * is){
       vec x=getGC()->convert(xsolve);      
       vec y=getGC()->convert(ysolve);      
       vec beta=getGC()->convert(betasolve);      
-      vec ones(Nm,1,fill::ones);
 
-      vec pi = getA()*getCg()*beta;
-      mat term = getA()*(getCg()*beta*ones.t() - getCm());    
-      mat SIGy = term*getSIGm()*term.t();
+      mat term3=Ag*beta;
+      mat SIGy = term3*ker*term3.t()-term3*AmSone.t()-AmSone*term3.t()+getSigger();
+      //      mat term = getA()*(getCg()*beta*ones.t() - getCm());    
+      //      mat SIGy = term*getSIGm()*term.t();
       vec z=getGC()->risk(y,SIGy.diag(),getL(),getP(),getPc());
 
 
       x.t().print("x: ");
       y.t().print("y: ");
       beta.t().print("beta: ");
-      pi.t().print("pi: ");
+      //      pi.t().print("pi: ");
       z.t().print("z: ");
       cout<<"r: "<<accu(z)<<endl;
 
@@ -56,11 +66,12 @@ rgrid *  isjn::solveModel( isolve * is){
       
       cout<<getGenUp()[1]<<endl;
       cout<<x(1)<<"\t"<<beta(1)<<endl;
+
+      //      vec ycheck = onesL*y + _L*y;
       
-      if(n==4) large=100;
-      if(n==6) large=10000;
+
       for(int i=0;i<Nl;i++){
-	if(_check(i) && i<large){
+	if((_check(i) && check2(i)) || (_check(i) && fullcheck)){
 	  cout<<"Contingency: "<<i<<endl;
 	  vec yn = getN1(i,y);
 	  //	  vec sdn = getSDN(i,y,SIGy);
@@ -68,7 +79,7 @@ rgrid *  isjn::solveModel( isolve * is){
   
 	  for(int e=0;e<Nl;e++){
 	    sdn(e) = SIGy(e,e) + 2*_L(e,i)*SIGy(e,i)+ _L(e,i)*_L(e,i)*SIGy(i,i);
-	    if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	    if(sdn(e)<0.000001) sdn(e)=0;
 	  }
 
 	  /*	  double sdT=getSigDelta();
@@ -91,18 +102,25 @@ rgrid *  isjn::solveModel( isolve * is){
 	  vec zn=getGC()->risk(yn,sdn,getL(),getP(),getPc());
 	  if(!yn.is_finite()) yn.print("yn: ");
 	  cout<<"Post eval"<<endl;
-	  systemfail += postN1(i,yn,zn,beta,sdn,&cplex,n);
+	  check2(i) =postN1(i,yn,zn,beta,sdn,&cplex,n);
+	  systemfail += check2(i);
 	}
-	else cout<<"dont check Contingency "<<i<<endl;
+	else cout<<"dC "<<i<<"\t";
       }
-      if(n<=5) systemfail=true;
-      if(!systemfail && n>5){
+      //      if(n<=5) systemfail=true;
+      if(!systemfail && fullcheck){
 	cout<<"Solved!"<<endl;
 	setBetaSolve(beta);
 	setSDSolve(SIGy.diag());
 	break;
       }
-      
+      if(systemfail && fullcheck) fullcheck=false;
+      if(!systemfail && !fullcheck) {
+	fullcheck=true;
+	systemfail=true;
+      }
+
+
       if(!cplex.solve()) break;
       
 
@@ -198,7 +216,7 @@ bool isjn::postN1(int n, vec yn, vec zn, vec beta, vec sdn, IloCplex * cplex, in
   //define tolerance for line risk > 0
   stringstream ss;
 
-  double tol = pow(10,-5);
+  double tol = 1*pow(10,-3);
   int Nl = getGrid()->numBranches();
 
   mat A=getA();
@@ -246,12 +264,13 @@ bool isjn::postN1(int n, vec yn, vec zn, vec beta, vec sdn, IloCplex * cplex, in
 	
 	//Add cuts for each line with positive risk
 	double y_i = abs(yn(i));
+	double sd_i = sqrt(sdn(i));
 	double U=getGrid()->getBranch(i).getRateA();
-	double dmu=rv.deriveMu(L,p,pc,y_i/U,sqrt(sdn(i))/U);
-	double dsigma=rv.deriveSigma(L,p,pc,y_i/U,sqrt(sdn(i))/U);
+	double dmu=rv.deriveMu(L,p,pc,y_i/U,sd_i/U);
+	double dsigma=rv.deriveSigma(L,p,pc,y_i/U,sd_i/U);
 	cout<<"dmu: "<<dmu<<", dsigma: "<<dsigma<<endl;
 	IloRange cut(getEnv(),-IloInfinity,0);
-	cut.setExpr( dmu/U*(_yplus[n][i] - y_i) + dsigma/U*(_sd[n][i] - sqrt(sdn(i))) + zn(i) - _z[n][i]);
+	cut.setExpr( dmu/U*(_yplus[n][i] - y_i) + dsigma/U*(_sd[n][i] - sd_i) + zn(i) - _z[n][i]);
 	cout<<cut<<endl;
 	getModel()->add(cut);
 	_addCut(i,n)=_addCut(i,n)+1;
@@ -263,10 +282,10 @@ bool isjn::postN1(int n, vec yn, vec zn, vec beta, vec sdn, IloCplex * cplex, in
 	double pi_i = dot(getA().row(i),getCg()*beta);
 	double pi_n = dot(getA().row(n),getCg()*beta);
 	double psi = pi_i + _L(i,n)*pi_n;
-	double sd_i = sqrt(sdn(i)*1.00001);
+
 	cut_sd.setExpr( sd_i - _sd[n][i] );
 	double term=0;
-	if(sd_i>0)
+	//	if(sd_i>0)
 	  term=(psi * getSigDelta() - (getSig()(i) + _L(i,n)*getSig()(n)))/sd_i;
 	cout<<"\n";
 	for( int j=0; j<Ng;j++){
