@@ -15,7 +15,7 @@ using namespace std;
 
 int main(int argc, char* argv[]){
 
-  if(argc<=14){
+  if(argc<=12){
     cout<<"cmd: pow case/30.db <m0> <m1> <e0> <e1> <L> <p> <B> <T> <L2> <p2>\n"
 	<<"\trun main for case30\n"
 	<<"\t<m0> base capacity multiplier\n"
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
   int T = atoi(argv[12]);
 
   double opaL,opap;
-  if(argc>12){
+  if(argc>13){
     opaL=atof(argv[13]);
     opap=atof(argv[14]);
   }
@@ -496,6 +496,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r0.min()  << endl;
 	cout << "max  = " << stats_r0.max()  << endl;
 	cout<<endl;
+	cerr<<"opf\t"<<o0<<"\t"<<r0<<"\t"<<stats_r0.mean()<<"\t"<<stats_r0.max()<<endl;
 
 
 	cout<<"OPF n1"<<"\t"<<s1<<endl;
@@ -507,6 +508,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r1.min()  << endl;
 	cout << "max  = " << stats_r1.max()  << endl;
 	cout<<endl;
+	cerr<<"opfn1\t"<<o1<<"\t"<<r1<<"\t"<<stats_r1.mean()<<"\t"<<stats_r1.max()<<endl;
 
 
 	cout<<"CC"<<"\t"<<s<<endl;
@@ -518,6 +520,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_risk.min()  << endl;
 	cout << "max  = " << stats_risk.max()  << endl;
 	cout<<endl;
+	cerr<<"cc\t"<<o<<"\t"<<r<<"\t"<<stats_risk.mean()<<"\t"<<stats_risk.max()<<endl;
 
 	cout<<"SJ"<<"\t"<<s3<<endl;
 	cout<<"C3: "<<o3<<endl;
@@ -528,6 +531,7 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r3.min()  << endl;
 	cout << "max  = " << stats_r3.max()  << endl;
 	cout<<endl;
+	cerr<<"jcc\t"<<o3<<"\t"<<r3<<"\t"<<stats_r3.mean()<<"\t"<<stats_r3.max()<<endl;
 
 	cout<<"SJ N1"<<"\t"<<s4<<endl;
 	cout<<"C4: "<<o4<<endl;
@@ -538,6 +542,8 @@ int main(int argc, char* argv[]){
 	cout << "min  = " << stats_r4.min()  << endl;
 	cout << "max  = " << stats_r4.max()  << endl;
 	cout<<endl;
+	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;
+	cerr<<"\n";
 
 	cout<<"\n\n";
 
@@ -615,7 +621,8 @@ int main(int argc, char* argv[]){
     mycc.close();
     myjcc.close();
     */
-    
+
+    if(argc>13){
     check.t().print("check: ");
         
     ofstream myopf( "opf.out" );
@@ -708,7 +715,7 @@ int main(int argc, char* argv[]){
     
 	mycomp.close();
 
-
+    }
       }
       catch(IloException& e){
 	cerr<<"Concert exception: "<<e<<endl; 

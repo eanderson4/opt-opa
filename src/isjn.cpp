@@ -57,8 +57,8 @@ rgrid *  isjn::solveModel( isolve * is){
       cout<<getGenUp()[1]<<endl;
       cout<<x(1)<<"\t"<<beta(1)<<endl;
       
-      if(n==2) large=100;
-      if(n==3) large=10000;
+      if(n==4) large=100;
+      if(n==6) large=10000;
       for(int i=0;i<Nl;i++){
 	if(_check(i) && i<large){
 	  cout<<"Contingency: "<<i<<endl;
@@ -95,8 +95,8 @@ rgrid *  isjn::solveModel( isolve * is){
 	}
 	else cout<<"dont check Contingency "<<i<<endl;
       }
-      if(n<=3) systemfail=true;
-      if(!systemfail && n>3){
+      if(n<=5) systemfail=true;
+      if(!systemfail && n>5){
 	cout<<"Solved!"<<endl;
 	setBetaSolve(beta);
 	setSDSolve(SIGy.diag());

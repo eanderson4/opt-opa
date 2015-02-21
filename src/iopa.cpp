@@ -191,15 +191,15 @@ void iopa::runTrials(ostream & out,ijn1 * n1,vec f, vec g, mat SIG,double num,do
 
   vec check = n1->getCheck();
   mat Lo = n1->getLo();
-  vec z(Nl);
+  vec z(Nl,fill::zeros);
 
   running_stat<double> statsT_ls;
   running_stat<double> statsT_stages;
   
-  vec sd0(Nl);
+  vec sd0=SIG.diag();
   for(int e=0;e<Nl;e++){
     double U = _gr->getBranch(e).getRateA();
-    if(sd0(e)<0) sd0(e)=0;
+    if(sd0(e)<0.00000001) sd0(e)=0;
   }
   z=_gc->risk(f,sd0,_Lr,_pr,.85);	
   double r0 = sum(z);
