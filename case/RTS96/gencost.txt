@@ -1,0 +1,12 @@
+Table III - Ramp and Cost (Almassalkhi and Hiskens 2015)
+
+GID   Size Type	Ramp(pu/hr)	    CostA($/hrpu^2)   CostB($/hrpu)
+U12     12 OilSteam		    0.105	      2.87      1.57
+U20     20 OilCT		    0.315	      2.1       1.66
+U50     50 Hydro		    0.105	      0.001     0.11
+U76     76 CoalSteam		    0.210	      0.07      0.19
+U100   100 OilSteam		    0.735	      0.22      1.36
+U155   155 CoalSteam		    0.315	      0.01      0.182
+U197   197 OilSteam		    0.315	      0.09      1.39
+U350   350 CoalSteam		    0.420	      0.01      0.179
+U400   400 Nuclear		    2.1		      0	        0.062

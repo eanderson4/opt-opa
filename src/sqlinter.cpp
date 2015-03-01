@@ -57,6 +57,13 @@ int sqlInter::load(grid & gr) {
   return 1;
 }
 
+int sqlInter::loadRTS(grid & gr) {
+  
+  cout<<"HERE";
+  
+  return 1;
+}
+
 
 int sqlInter::loadDb(string table,grid & gr) {
   sqlite3_stmt *stmt;
@@ -68,12 +75,9 @@ int sqlInter::loadDb(string table,grid & gr) {
     cerr<<"Failed to prepare database: "<<sqlite3_errstr(result)<<endl;
     return 0;
   }  
-  do {
-    result = sqlite3_step (stmt) ;
-    if (result == SQLITE_ROW) { //read data
+  while (sqlite3_step(stmt) == SQLITE_ROW){
       parseStmt(gt,stmt, gr, true);
-    }
-  } while (result == SQLITE_ROW) ;
+  }
   return 1;
 }
 

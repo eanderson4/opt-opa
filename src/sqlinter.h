@@ -22,6 +22,7 @@ class sqlInter
   void printDb(string table);
   int loadDb(string table, grid & gr);
   int load(grid & gr);
+  int loadRTS(grid & gr);
 
   string getStr(grid_tables gt);
   void parseStmt(grid_tables gt, sqlite3_stmt *stmt, grid & gr, bool load);
