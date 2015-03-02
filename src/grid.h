@@ -7,7 +7,7 @@
 #include "bus.h"
 #include "branch.h"
 #include "gen.h"
-
+#include "gentype.h"
 
 using namespace std;
 
@@ -44,6 +44,20 @@ class grid
   void printNums(ostream& stream);
   double getLoadShedPenalty(){ return loadShedPenalty; }
   double getTotalDemand();
+
+  void addGenType(gentype gt){ _gt.push_back(gt); }
+  double getC2(string gid){ return _gt[getGenType(gid)].getC2(); }
+  double getC1(string gid){ return _gt[getGenType(gid)].getC1(); }
+  int getGenType(string gid){ 
+    for(unsigned int i=0;i<_gt.size();i++){
+      if (gid == _gt[i].getGid()){
+	return i;
+      }
+    }
+    return 0;
+  }
+
+
   
   friend ostream& operator<<(ostream& os, const grid& gr);
 
@@ -51,6 +65,7 @@ class grid
   vector<bus> _buses;
   vector<branch> _branches;
   vector<gen> _gens;
+  vector<gentype> _gt;
 
   static map<int, int> map_busNum;
 

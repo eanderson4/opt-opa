@@ -8,7 +8,8 @@ class gen {
 
  public:
   gen() {}
- gen(int num, int bus, double pg, double qg, double qmax, double qmin, double vg, double mbase, double status, double pmax, double pmin) : _num( num ), _bus( bus ), _pg( pg ), _qg( qg ), _qmax( qmax ), _qmin( qmin ), _vg( vg ), _mbase( mbase ), _status( status ), _pmax( pmax ), _pmin( pmin ) { }
+ gen(int num, int bus, double pg, double qg, double qmax, double qmin, double vg, double mbase, double status, double pmax, double pmin) : _num( num ), _bus( bus ), _pg( pg ), _qg( qg ), _qmax( qmax ), _qmin( qmin ), _vg( vg ), _mbase( mbase ), _status( status ), _pmax( pmax ), _pmin( pmin ), _c0(0) { }
+ gen(int num, int bus, double pg, double qg, double qmax, double qmin, double vg,  double mbase, double status, double pmax, double pmin, double c2, double c1) : _num( num ), _bus( bus ), _pg( pg ), _qg( qg ), _qmax( qmax ), _qmin( qmin ), _vg( vg ), _mbase( mbase ), _status( status ), _pmax( pmax ), _pmin( pmin ), _c2(c2), _c1(c1), _c0(0) { }
   void addCost(int model, double startup, double shutdown, int ncost, double c2, double c1, double c0){
     _model=model;
     _startup=startup;

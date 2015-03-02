@@ -9,7 +9,11 @@
 #include "grid.h"
 using namespace std;
 
-enum grid_tables { tab_uknown, tab_bus, tab_branch, tab_gen, tab_gencost, tab_general    };
+enum grid_tables { 
+  tab_uknown, tab_general,
+  tab_bus, tab_branch, tab_gen, tab_gencost,
+  tab_bus_rts, tab_branch_rts, tab_gen_rts, tab_gencost_rts
+};
 static map<string, grid_tables> map_gridTables;
 
 

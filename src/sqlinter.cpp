@@ -7,6 +7,12 @@ sqlInter::sqlInter() {
   map_gridTables["gencost"]=tab_gencost;
   map_gridTables["general"]=tab_general;
 
+  map_gridTables["bus_rts"]=tab_bus_rts;
+  map_gridTables["branch_rts"]=tab_branch_rts;
+  map_gridTables["gen_rts"]=tab_gen_rts;
+  map_gridTables["gencost_rts"]=tab_gencost_rts;
+
+
   cout<<"map_gridTables contains "
       << map_gridTables.size()
       << " entries." <<endl;
@@ -49,6 +55,7 @@ void sqlInter::printDb(string table) {
 
 int sqlInter::load(grid & gr) {
   
+  cout<<"Load Regular"<<endl;
   if(!loadDb("bus",gr)) return 0;
   if(!loadDb("branch",gr)) return 0;
   if(!loadDb("gen",gr)) return 0;
@@ -58,8 +65,14 @@ int sqlInter::load(grid & gr) {
 }
 
 int sqlInter::loadRTS(grid & gr) {
-  
-  cout<<"HERE";
+
+  cout<<"Load RTS"<<endl;
+  if(!loadDb("bus_rts",gr)) return 0;
+  if(!loadDb("branch_rts",gr)) return 0;
+  if(!loadDb("gencost_rts",gr)) return 0;
+  if(!loadDb("gen_rts",gr)) return 0;
+
+
   
   return 1;
 }
@@ -96,6 +109,17 @@ string sqlInter::getStr(grid_tables gt) {
     return "select * from gencost";
   case tab_general:
     return "select * from general";
+
+  case tab_bus_rts:
+    return "select * from bus";
+  case tab_branch_rts:
+    return "select * from branch";
+  case tab_gen_rts:
+    return "select * from genparm";
+  case tab_gencost_rts:
+    return "select * from gencost";
+
+
   default:
     cerr<< "Table not known" << gt <<endl;
   }
@@ -182,6 +206,86 @@ void sqlInter::parseStmt(grid_tables gt, sqlite3_stmt *stmt, grid & gr, bool loa
       cout<<num<<" "<<model<<" "<<startup<<" "<<shutdown<<" "<<ncost<<" "<<c2<<" "<<c1<<" "<<c0<<endl;
     break;
     }
+
+
+  case tab_bus_rts:
+    {
+    int num=sqlite3_column_int(stmt,0);
+    string name((char *)sqlite3_column_text(stmt,1));
+    int type=sqlite3_column_int(stmt,2);
+    double pd=sqlite3_column_double(stmt,3);
+    double qd=sqlite3_column_double(stmt,4);
+    double gs=sqlite3_column_double(stmt,5);
+    double bs=sqlite3_column_int(stmt,6);
+    int area=sqlite3_column_int(stmt,7);
+    double basekv=sqlite3_column_int(stmt,8);
+    int zone=sqlite3_column_int(stmt,9);
+    if(load)
+      gr.addBus(bus(num,type,pd,qd,gs,bs,area,1,1,basekv,zone,1,1));
+    else
+      cout<<num<<" "<<pd<<" "<<qd<<endl;
+    break;
+    }
+  case tab_branch_rts:
+    {
+    int num=sqlite3_column_int(stmt,0);
+    string name((char *)sqlite3_column_text(stmt,1));
+    int fbus=sqlite3_column_int(stmt,2);
+    int tbus=sqlite3_column_int(stmt,3);
+    double br_length=sqlite3_column_double(stmt,4);
+    double perm_lam=sqlite3_column_double(stmt,5);
+    double duration=sqlite3_column_double(stmt,6);
+    double trans_lam=sqlite3_column_double(stmt,7);
+    double br_r=sqlite3_column_double(stmt,8);
+    double br_x=sqlite3_column_double(stmt,9);
+    double br_b=sqlite3_column_double(stmt,10);
+    double rate_a=sqlite3_column_double(stmt,11);
+    double rate_b=sqlite3_column_double(stmt,12);
+    double rate_c=sqlite3_column_double(stmt,13);
+    double tap=sqlite3_column_double(stmt,14);
+    if(load)
+      gr.addBranch(branch(num,fbus,tbus,br_r,br_x,br_b,rate_a,rate_b,rate_c,tap,0,1,-360,360));
+    else
+      cout<<num<<" "<<fbus<<" "<<tbus<<" "<<br_x<<" "<<rate_a<<endl;
+    break;
+    }
+  case tab_gen_rts:
+    {
+    int num=sqlite3_column_int(stmt,0);
+    int bus=sqlite3_column_int(stmt,1);
+    string gid((char *)sqlite3_column_text(stmt,2));
+    int id = sqlite3_column_double(stmt,3);
+    double pg = sqlite3_column_double(stmt,4);
+    double qg=sqlite3_column_double(stmt,5);
+    double qmax=sqlite3_column_double(stmt,6);
+    double qmin=sqlite3_column_double(stmt,7);
+    double vs=sqlite3_column_double(stmt,8);
+    double c2=gr.getC2(gid);
+    double c1=gr.getC1(gid);
+    string sizess=gid;
+    double pmax=atof(sizess.erase(0,1).c_str());
+    if(load)
+      gr.addGen(gen(num,bus,pg,qg,qmax,qmin,vs,1,1,pmax,0,c2,c1));
+    else
+      cout<<num<<" "<<bus<<" "<<pg<<" "<<pmax<<endl;
+    break;
+    }
+  case tab_gencost_rts:
+    {
+    int num=sqlite3_column_int(stmt,0);
+    string gid((char *)sqlite3_column_text(stmt,1));
+    double size=sqlite3_column_double(stmt,2);
+    string type((char *)sqlite3_column_text(stmt,3));
+    double ramp=sqlite3_column_double(stmt,4);
+    double c2=sqlite3_column_double(stmt,5);
+    double c1=sqlite3_column_double(stmt,6);
+    if(load)
+      gr.addGenType(gentype(num,gid,size,type,ramp,c2,c1));
+    else
+      cout<<num<<" "<<size<<" "<<c2<<" "<<c1<<endl;
+    break;
+    }
+
   case tab_general:
     {
     int num=sqlite3_column_int(stmt,0);
