@@ -29,7 +29,9 @@ int main(int argc, char* argv[]){
 	<<"\t<B> Variance budget\n"
 	<<"\t<T> num trials\n"
 	<<"\t<L2> no risk intercept (OPA)\n"
-	<<"\t<p2> probability of failure at nominal (OPA)\n"<<endl;
+	<<"\t<p2> probability of failure at nominal (OPA)\n"
+	<<"\t<N> Identifier for file output (OPA)\n"
+	<<"\t<Nstart> Start at number (OPA)\n"<<endl;
     return 1;
   }
 
@@ -50,6 +52,7 @@ int main(int argc, char* argv[]){
   if(argc>13){
     opaL=atof(argv[13]);
     opap=atof(argv[14]);
+
   }
   else {
     opaL=L;
@@ -197,7 +200,7 @@ int main(int argc, char* argv[]){
 	//	igrid nom(gr);
 	//	nom.addCost();
 	//	in1 nom1(gr, SIGy, Hw,m1);
-	rgrid * rnom = nom.solveModel(&is);
+	/*	rgrid * rnom = nom.solveModel(&is);
 
 	
 
@@ -416,12 +419,12 @@ int main(int argc, char* argv[]){
 	cout << "max  = " << stats_r3.max()  << endl;
 	cout<<endl;
 	cerr<<"jcc\t"<<o3<<"\t"<<r3<<"\t"<<stats_r3.mean()<<"\t"<<stats_r3.max()<<endl;
-
+	*/
 	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
 	rgrid * rsjn = sjn.solveModel(&is);
 
 	cout<<"HERE"<<endl;
-	
+		
 	double o4=rsjn->getObjective();
 	vec f4=gc.convert(rsjn->getF());
 	vec g4=gc.convert(rsjn->getG());
@@ -472,7 +475,7 @@ int main(int argc, char* argv[]){
 
     
 
-    
+	/*
     
     cout<<"2nd stage Comparison"<<endl;
     //    cout<<*gr<<endl;
@@ -609,7 +612,7 @@ int main(int argc, char* argv[]){
     cout<<endl;
 
 
-
+	*/
 
     /*
     ofstream myopf( "opf.json" );
@@ -629,20 +632,31 @@ int main(int argc, char* argv[]){
     */
 
     if(argc>13){
-    check.t().print("check: ");
+      /*    check.t().print("check: ");
         
     ofstream myopf( "opf.out" );
     ofstream myopfn1( "opfn1.out" );
     ofstream mycc( "cc.out" );
     ofstream myjcc( "jcc.out" );
-    ofstream myjccn1( "jccn1.out" );
-    iopa opa(gr,&gc,opaL,opap,L,p);
+      */
+      int Nstart = atoi(argv[16]);
+      string jcc1("jccS");
+      string jcc2("jccD");
+      jcc1 += argv[15];
+      jcc2 += argv[15];
+      jcc1 += ".out";
+      jcc2 += ".out";
+	
+      
+      ofstream myjcc1( jcc1.c_str() );
+      ofstream myjcc2( jcc2.c_str() );
+      iopa opa(gr,&gc,opaL,opap,L,p);
 
-    opa.runTrials(myopf, &n1, f0, g0, SIGy0,T,o0);
-    opa.runTrials(myopfn1, &n1, f1, g1, SIGy1,T,o1);
-    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
-    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
-    opa.runTrials(myjccn1, &n1, f4, g4, SIGy4,T,o4);
+    //    opa.runTrials(myopf, &n1, f0, g0, SIGy0,T,o0);
+    //    opa.runTrials(myopfn1, &n1, f1, g1, SIGy1,T,o1);
+    //    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
+    //    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
+      opa.runTrials(myjcc1,myjcc2, &n1, f4, g4, SIGy4,T,o4,Nstart);
 
     /*    for(int n=0;n<Nl;n++){
       if(check(n)){
@@ -655,16 +669,17 @@ int main(int argc, char* argv[]){
       }
     }
     */
-    myopf.close();
-    myopfn1.close();
-    mycc.close();
-    myjcc.close();
-    myjccn1.close();
+    //    myopf.close();
+    //    myopfn1.close();
+    //    mycc.close();
+    //    myjcc.close();
+    myjcc1.close();
+    myjcc2.close();
 
     ofstream mycomp( "comp.out" );
 
     mycomp<<" --- \t --- RISK 2nd--- \t ---\n"<<endl;
-
+    /*
 	mycomp<<"OPF"<<"\t"<<s0<<endl;
 	mycomp<<"C0: "<<o0<<endl;
 	mycomp<<"r0 - "<<r0<<endl;
@@ -706,7 +721,7 @@ int main(int argc, char* argv[]){
 	mycomp << "min  = " << stats_r3.min()  << endl;
 	mycomp << "max  = " << stats_r3.max()  << endl;
 	mycomp<<endl;
-
+    */
 	mycomp<<"SJ N1"<<"\t"<<s4<<endl;
 	mycomp<<"C4: "<<o4<<endl;
 	mycomp<<"r4 - "<<r4<<endl;

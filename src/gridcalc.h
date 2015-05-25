@@ -11,7 +11,7 @@
 #include "rv.h"
 #include "del_g.h"
 
-#define ARMA_DONT_USE_WRAPPER
+//#define ARMA_DONT_USE_WRAPPER
 #include <armadillo>
 
 
