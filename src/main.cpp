@@ -59,7 +59,6 @@ int main(int argc, char* argv[]){
     opap=.5;
   }
    
-
   ///  int sn=atoi(argv[7]); //standard deviation test
 
   sqlInter db;
@@ -103,6 +102,9 @@ int main(int argc, char* argv[]){
       demand.push_back(p);
     }  
   }
+
+
+
 
   int Nm=nodes.size();
   vec indexM(Nm,fill::zeros);
@@ -190,6 +192,117 @@ int main(int argc, char* argv[]){
     ijn1 n1(gr,  SIGy,Hw,L,p,pc,eps,epsN);
   n1.addCost();
   vec check = n1.getCheck();
+
+
+  // READ IN INPUT FILE and calculating weighting factor
+  int ctr=0;
+  vec indexmap(Nl,fill::zeros);
+  vec indexmapback(Nl,fill::zeros);
+  for(int i=0;i<Nl;i++){
+    if(check(i)){
+      indexmap(i)=ctr;
+      indexmapback(ctr)=i;
+      ctr++;
+    }
+  }
+  cout<<ctr<<endl;
+  //  return 0;
+
+  int ctr2=0;
+  vec indexctr(ctr,fill::zeros);
+  vec riskctr(ctr,fill::zeros);
+  vec trialctr(ctr,fill::zeros);
+  vec meanctr(ctr,fill::zeros);
+  vec stdvctr(ctr,fill::zeros);
+
+  mat R(ctr,ctr,fill::zeros);
+
+  string line;
+  ifstream sfile ("data/s.out");
+  ifstream dfile ("data/d.out");
+  istringstream infilestream;
+  istringstream instream2;
+  if (sfile.is_open() && dfile.is_open())
+    {
+      while ( getline (sfile,line) )
+	{
+	  cout << line << '\n';
+	}
+      sfile.close();
+      while ( getline (dfile,line) )
+	{
+	  infilestream.clear();
+	  infilestream.str(line);
+	  cout << line << '\n';
+	  infilestream >> indexctr(ctr2) 
+		   >> riskctr(ctr2) 
+		   >> trialctr(ctr2) 
+		   >> meanctr(ctr2) 
+		   >> stdvctr(ctr2);
+	  cout << indexctr(ctr2) <<"\t"
+	       << riskctr(ctr2) <<"\t"
+	       << trialctr(ctr2) <<"\t"
+	       << meanctr(ctr2) <<"\t"
+	       << stdvctr(ctr2)<<"\t";
+	  while(!infilestream.eof()){
+	    string a;
+	    infilestream >> a;
+	    instream2.clear();
+	    instream2.str(a);
+	    string pos;
+	    string val;
+	    double ctrpos;
+	    double ctrmap;
+	    double ctrvalue;
+	    getline( instream2, pos, ',');
+	    instream2 >> val;
+	    cout<<pos<<" "<<val<<"\t";
+	    ctrpos=atoi(pos.c_str());
+	    ctrmap=indexmap(ctrpos);
+	    ctrvalue=atof(val.c_str());
+	    cout<<ctrpos<<" "<<ctrmap<<" "<<ctrvalue<<"\t";
+	    R(ctr2,ctrmap)=ctrvalue;
+	  }
+	  cout<<endl;
+	  ctr2++;
+	}
+      dfile.close();
+    }
+
+  else cout << "Unable to open file";
+
+
+
+  int test;
+  cin>>test;
+
+  //  sp_mat sR(R);
+  
+  //  sR.print("R mat: ");
+
+
+  vec xdesign = R.i()*meanctr;
+
+  xdesign.t().print("xdesign: ");
+
+  vec resid = R*xdesign - meanctr;
+
+  cin>>test;
+  
+  resid.t().print("resid: ");
+  
+  
+  //  return 0;
+
+
+
+
+
+
+
+
+
+
 
     isj nom(gr, &gc, SIG, indexM, L, p, pc, 1);
     nom.lineLimitStatus(true);
