@@ -7,6 +7,7 @@
 #include "icc.h"
 #include "isj.h"
 #include "isjn.h"
+#include "ioj.h"
 #include "ijn1.h"
 #include "in1.h"
 #include "iopa.h"
@@ -30,6 +31,8 @@ int main(int argc, char* argv[]){
 	<<"\t<T> num trials\n"
 	<<"\t<L2> no risk intercept (OPA)\n"
 	<<"\t<p2> probability of failure at nominal (OPA)\n"
+	<<"\t<e0_LS> loadshed risk constraint (OJ)\n"
+	<<"\t<e1_LS> N-1 loadshed risk constraint (OJ)\n"
 	<<"\t<N> Identifier for file output (OPA)\n"
 	<<"\t<Nstart> Start at number (OPA)\n"<<endl;
     return 1;
@@ -40,6 +43,8 @@ int main(int argc, char* argv[]){
   double mg=atof(argv[4]);
   double eps=atof(argv[5]);
   double epsN=atof(argv[6]);
+  double epsLS=atof(argv[15]);
+  double epsLSN=atof(argv[16]);
   double epsL=atof(argv[7]);
   double epsG=atof(argv[8]);
   double L=atof(argv[9]);
@@ -165,6 +170,8 @@ int main(int argc, char* argv[]){
 
   vec eN(Nl, fill::ones);
   eN = eN*epsN;
+  vec eNOJ(Nl, fill::ones);
+  eNOJ = eNOJ*epsLSN;
   
 
   //Set Probability info
@@ -273,8 +280,8 @@ int main(int argc, char* argv[]){
 
 
 
-  int test;
-  cin>>test;
+  //  int test;
+  //  cin>>test;
 
   //  sp_mat sR(R);
   
@@ -285,9 +292,27 @@ int main(int argc, char* argv[]){
 
   xdesign.t().print("xdesign: ");
 
+  double avgx = mean(xdesign);
+
+  vec xdes(Nl,fill::zeros);
+  
+  int ctr3=0;
+  for(int i=0;i<Nl;i++){
+    if(check(i)){
+      xdes(i) = xdesign(ctr3);
+      ctr3++;
+    }
+    else
+      xdes(i) = avgx;
+
+  }
+
+
+
+
   vec resid = R*xdesign - meanctr;
 
-  cin>>test;
+  //  cin>>test;
   
   resid.t().print("resid: ");
   
@@ -536,7 +561,7 @@ int main(int argc, char* argv[]){
 	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
 	rgrid * rsjn = sjn.solveModel(&is);
 
-	cout<<"HERE"<<endl;
+
 		
 	double o4=rsjn->getObjective();
 	vec f4=gc.convert(rsjn->getF());
@@ -585,6 +610,68 @@ int main(int argc, char* argv[]){
 	cout << "max  = " << stats_r4.max()  << endl;
 	cout<<endl;
 	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;	
+
+	//	cout<<"HERE"<<endl;
+	
+	//	return 0;
+
+	ioj oj(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5, epsLS, eNOJ,xdes);
+	rgrid * roj = oj.solveModel(&is);
+
+
+	double o6=roj->getObjective();
+	vec f6=gc.convert(roj->getF());
+	vec g6=gc.convert(roj->getG());
+	vec beta6=oj.getBeta();
+	mat term6 = A*(Cg*beta6*ones.t() - Cm);    
+	mat SIGy6 = term6*SIG*term6.t();
+	vec sd6 = SIGy6.diag();
+	vec z6=gc.risk(f6,sd6,L,p,pc);
+	double r6 = sum(z6);
+	vec p6=gc.lineprob(f6,sd6);
+	IloCplex::CplexStatus s6=roj->getStatus();
+
+	vec fU6(Nl);
+	vec sdU6(Nl);
+	for(int i=0;i<Nl;i++){
+	  double U = gr->getBranch(i).getRateA();
+	  fU6(i) = abs(f6(i))/U;
+	  sdU6(i) = sd6(i)/U;
+	}
+	
+	running_stat<double> stats_r6;
+	for(int i=0;i<Nl;i++){
+	  if(check(i)==1){
+	    vec f6n = n1.getN1(i,f6,g6);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy6(e,e) + 2*Lo(e,i)*SIGy6(e,i)+ Lo(e,i)*Lo(e,i)*SIGy6(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      //	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z6n=gc.risk(f6n,sdn,L,p,pc);
+	    double r6n = sum(z6n);
+	    stats_r6(r6n);
+	  }
+	}
+	
+	cout<<"SJ N1"<<"\t"<<s6<<endl;
+	cout<<"C6: "<<o6<<endl;
+	cout<<"r6 - "<<r6<<endl;
+	cout << "count = " << stats_r6.count() << endl;
+	cout << "mean = " << stats_r6.mean() << endl;
+	cout << "stdv  = " << stats_r6.stddev()  << endl;
+	cout << "min  = " << stats_r6.min()  << endl;
+	cout << "max  = " << stats_r6.max()  << endl;
+	cout<<endl;
+	cerr<<"jccn6\t"<<o6<<"\t"<<r6<<"\t"<<stats_r6.mean()<<"\t"<<stats_r6.max()<<endl;	
+
+
+	cout<<epsLS<<"\t"<<epsLSN<<endl;
+	cout<<"HERE"<<endl;
+	
+	return 0;
 
     
 
@@ -755,8 +842,8 @@ int main(int argc, char* argv[]){
       int Nstart = atoi(argv[16]);
       string jcc1("jccS");
       string jcc2("jccD");
-      jcc1 += argv[15];
-      jcc2 += argv[15];
+      jcc1 += argv[17];
+      jcc2 += argv[18];
       jcc1 += ".out";
       jcc2 += ".out";
 	

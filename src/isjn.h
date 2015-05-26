@@ -16,7 +16,21 @@ class isjn : public isj {
   bool postN1(int n,vec yn, vec zn,vec beta, vec sdn, IloCplex * cplex, int iteration=0);
   vec getN1(int n, vec y0);
   vec getSDN(int n, vec y0, mat Cov);
+
+
+  IloNumVarArray getZ(int n){ return _z[n]; }
+  IloNumVarArray getYplus(int n){ return _yplus[n]; }
+  IloNumVarArray getSD(int n){ return _sd[n]; }
+
+  vec getEpsN(){ return _epsN; }
+  mat getLmat(){ return _L; }
+  mat getHb(){ return _Hb; }
+  mat getSigPsi(){ return _sigpsi; }
+
   vec getCheck(){ return _check; }
+  mat getAddCut(){ return _addCut; }
+  mat getIn(){ return _in; }
+
 
  private:
   IloNumVarArray _risk;

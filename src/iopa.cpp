@@ -838,11 +838,15 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
   out << "max  = " << statsT_stages.max()  << endl;
   out<<"\n"<<endl;
     */
-    cerr<<statsT_ls.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_ls.mean()<<"\t"<<statsT_ls.stddev()<<"\t"<<statsT_ls.stddev()/sqrt(statsT_ls.count())<<"\t"<<statsT_ls.min()<<"\t"<<statsT_ls.max()<<endl;
+    cerr<<"Load Shed: "<<endl;
+        cerr<<statsT_ls.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_ls.mean()<<"\t"<<statsT_ls.stddev()<<"\t"<<statsT_ls.stddev()/sqrt(statsT_ls.count())<<"\t"<<statsT_ls.min()<<"\t"<<statsT_ls.max()<<endl;
+	cerr<<"Stages: "<<endl;
+    cerr<<statsT_stages.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_stages.mean()<<"\t"<<statsT_stages.stddev()<<"\t"<<statsT_stages.stddev()/sqrt(statsT_stages.count())<<"\t"<<statsT_stages.min()<<"\t"<<statsT_stages.max()<<endl;
+
 
   cplex.end();  
 
-  rbase->displayOperatingPos(_gr);
+  //  rbase->displayOperatingPos(_gr);
 
 }
 
