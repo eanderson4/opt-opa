@@ -584,6 +584,7 @@ int main(int argc, char* argv[]){
 	}
 	
 	running_stat<double> stats_r4;
+	running_stat<double> stats_ls4;
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f4n = n1.getN1(i,f4,g4);
@@ -597,19 +598,10 @@ int main(int argc, char* argv[]){
 	    vec z4n=gc.risk(f4n,sdn,L,p,pc);
 	    double r4n = sum(z4n);
 	    stats_r4(r4n);
+	    stats_ls4(accu(xdes % z4n));
 	  }
 	}
 	
-	cout<<"SJ N1"<<"\t"<<s4<<endl;
-	cout<<"C4: "<<o4<<endl;
-	cout<<"r4 - "<<r4<<endl;
-	cout << "count = " << stats_r4.count() << endl;
-	cout << "mean = " << stats_r4.mean() << endl;
-	cout << "stdv  = " << stats_r4.stddev()  << endl;
-	cout << "min  = " << stats_r4.min()  << endl;
-	cout << "max  = " << stats_r4.max()  << endl;
-	cout<<endl;
-	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;	
 
 	//	cout<<"HERE"<<endl;
 	
@@ -640,6 +632,7 @@ int main(int argc, char* argv[]){
 	}
 	
 	running_stat<double> stats_r6;
+	running_stat<double> stats_ls6;
 	for(int i=0;i<Nl;i++){
 	  if(check(i)==1){
 	    vec f6n = n1.getN1(i,f6,g6);
@@ -653,17 +646,44 @@ int main(int argc, char* argv[]){
 	    vec z6n=gc.risk(f6n,sdn,L,p,pc);
 	    double r6n = sum(z6n);
 	    stats_r6(r6n);
+	    stats_ls6(accu(xdes % z6n));
 	  }
 	}
+
+	cout<<"SJ N1"<<"\t"<<s4<<endl;
+	cout<<"C4: "<<o4<<endl;
+	cout<<"r4 - "<<r4<<endl;
+	cout<<"ls4 - "<<accu(xdes % z4)<<endl;
+	cout<<"r N-1:";
+	cout << "count = " << stats_r4.count() << endl;
+	cout << "mean = " << stats_r4.mean() << endl;
+	cout << "stdv  = " << stats_r4.stddev()  << endl;
+	cout << "min  = " << stats_r4.min()  << endl;
+	cout << "max  = " << stats_r4.max()  << endl;
+	cout<<"ls N-1:"<<endl;
+	cout << "mean = " << stats_ls4.mean() << endl;
+	cout << "stdv  = " << stats_ls4.stddev()  << endl;
+	cout << "min  = " << stats_ls4.min()  << endl;
+	cout << "max  = " << stats_ls4.max()  << endl;
+	cout<<endl;
+	cerr<<"jccn4\t"<<o4<<"\t"<<r4<<"\t"<<stats_r4.mean()<<"\t"<<stats_r4.max()<<endl;	
+
 	
-	cout<<"SJ N1"<<"\t"<<s6<<endl;
+	cout<<"OJ"<<"\t"<<s6<<endl;
 	cout<<"C6: "<<o6<<endl;
 	cout<<"r6 - "<<r6<<endl;
+	cout<<"ls6 - "<<accu(xdes % z6)<<endl;
+	cout<<"r N-1:";
 	cout << "count = " << stats_r6.count() << endl;
 	cout << "mean = " << stats_r6.mean() << endl;
 	cout << "stdv  = " << stats_r6.stddev()  << endl;
 	cout << "min  = " << stats_r6.min()  << endl;
 	cout << "max  = " << stats_r6.max()  << endl;
+	cout<<"ls N-1:"<<endl;
+	cout << "mean = " << stats_ls6.mean() << endl;
+	cout << "stdv  = " << stats_ls6.stddev()  << endl;
+	cout << "min  = " << stats_ls6.min()  << endl;
+	cout << "max  = " << stats_ls6.max()  << endl;
 	cout<<endl;
 	cerr<<"jccn6\t"<<o6<<"\t"<<r6<<"\t"<<stats_r6.mean()<<"\t"<<stats_r6.max()<<endl;	
 
@@ -671,8 +691,8 @@ int main(int argc, char* argv[]){
 	cout<<epsLS<<"\t"<<epsLSN<<endl;
 	cout<<"HERE"<<endl;
 	
-	return 0;
 
+	//	return 0;
     
 
 	/*
@@ -839,24 +859,35 @@ int main(int argc, char* argv[]){
     ofstream mycc( "cc.out" );
     ofstream myjcc( "jcc.out" );
       */
-      int Nstart = atoi(argv[16]);
+      int Nstart = atoi(argv[18]);
       string jcc1("jccS");
       string jcc2("jccD");
       jcc1 += argv[17];
-      jcc2 += argv[18];
+      jcc2 += argv[17];
       jcc1 += ".out";
       jcc2 += ".out";
-	
-      
+   
       ofstream myjcc1( jcc1.c_str() );
       ofstream myjcc2( jcc2.c_str() );
+
+      string oj1("ojS");
+      string oj2("ojD");
+      oj1 += argv[17];
+      oj2 += argv[17];
+      oj1 += ".out";
+      oj2 += ".out";
+
+      ofstream myoj1( oj1.c_str() );
+      ofstream myoj2( oj2.c_str() );
       iopa opa(gr,&gc,opaL,opap,L,p);
 
     //    opa.runTrials(myopf, &n1, f0, g0, SIGy0,T,o0);
     //    opa.runTrials(myopfn1, &n1, f1, g1, SIGy1,T,o1);
     //    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
     //    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
-      opa.runTrials(myjcc1,myjcc2, &n1, f4, g4, SIGy4,T,o4,Nstart);
+      double mean4,mean6;
+      mean4 = opa.runTrials(myjcc1,myjcc2, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart);
+      mean6 = opa.runTrials(myoj1,myoj2, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart);
 
     /*    for(int n=0;n<Nl;n++){
       if(check(n)){
@@ -875,6 +906,8 @@ int main(int argc, char* argv[]){
     //    myjcc.close();
     myjcc1.close();
     myjcc2.close();
+    myoj1.close();
+    myoj2.close();
 
     ofstream mycomp( "comp.out" );
 
@@ -925,11 +958,27 @@ int main(int argc, char* argv[]){
 	mycomp<<"SJ N1"<<"\t"<<s4<<endl;
 	mycomp<<"C4: "<<o4<<endl;
 	mycomp<<"r4 - "<<r4<<endl;
+	mycomp<<"ls4 - "<<accu(xdes.t()*z4)<<endl;
+	mycomp<<"E[LS4] - "<<mean4<<endl;
 	mycomp << "count = " << stats_r4.count() << endl;
 	mycomp << "mean = " << stats_r4.mean() << endl;
 	mycomp << "stdv  = " << stats_r4.stddev()  << endl;
 	mycomp << "min  = " << stats_r4.min()  << endl;
 	mycomp << "max  = " << stats_r4.max()  << endl;
+	mycomp<<endl;
+
+	mycomp<<"\n\n";
+
+	mycomp<<"OJ N1"<<"\t"<<s6<<endl;
+	mycomp<<"C6: "<<o6<<endl;
+	mycomp<<"r6 - "<<r6<<endl;
+	mycomp<<"ls6 - "<<accu(xdes.t()*z6)<<endl;
+	mycomp<<"E[LS6] - "<<mean6<<endl;
+	mycomp << "count = " << stats_r6.count() << endl;
+	mycomp << "mean = " << stats_r6.mean() << endl;
+	mycomp << "stdv  = " << stats_r6.stddev()  << endl;
+	mycomp << "min  = " << stats_r6.min()  << endl;
+	mycomp << "max  = " << stats_r6.max()  << endl;
 	mycomp<<endl;
 
 	mycomp<<"\n\n";

@@ -615,7 +615,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 }
 
 
-void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat SIG,double num,double cost,int Nstart){
+double iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart){
   int Nl = f.n_elem; 
   std::clock_t start;
   double duration;
@@ -626,7 +626,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
   ig.allowLoadShed();
   ig.addCost();
 
-  out<<"N\tc\tr\tT\tLS\tSD\tSE\tmin\tmax"<<endl;
+  out<<"N\tc\tr\trl\tT\tLS\tSD\tSE\tmin\tmax"<<endl;
 
   
   isolve is;
@@ -655,6 +655,8 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
   vec z(Nl,fill::zeros);
   vec z0(Nl,fill::zeros);
 
+
+
   running_stat<double> statsT_ls;
   running_stat<double> statsT_stages;
   
@@ -665,6 +667,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
   }
   z=_gc->risk(f,sd0,_Lr,_pr,.85);	
   double r0 = sum(z);
+  vec l0 = xdes % z;
 
     for(int n=Nstart;n<Nl;n++){
       if(check(n)){
@@ -678,9 +681,12 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 	}
 	z=_gc->risk(fn,sdn,_Lr,_pr,.85);
 	double r = sum(z);
+
 	z(n)=1;
+	vec  l = xdes.t()*z;
 	//	z.t().print("Risk: ");	
 	z0=z;
+
 
 
 
@@ -733,6 +739,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 	
 	vec z =_gc->risk(f,_L,_p);
 	
+
 	//	f.t().print("ff: ");
 	//	g.t().print("gf: ");
 	//	z.t().print("zf: ");
@@ -813,8 +820,8 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
       out2<<endl;
 
 
-
-  out<<n<<"\t"<<cost<<"\t"<<r<<"\t"<<stats_ls.count()<<"\t"<<stats_ls.mean()<<"\t"<<stats_ls.stddev()<<"\t"<<stats_ls.stddev()/sqrt(stats_ls.count())<<"\t"<<stats_ls.min()<<"\t"<<stats_ls.max()<<endl;
+      double rl = accu(l);
+      out<<n<<"\t"<<cost<<"\t"<<r<<"\t"<<rl<<"\t"<<stats_ls.count()<<"\t"<<stats_ls.mean()<<"\t"<<stats_ls.stddev()<<"\t"<<stats_ls.stddev()/sqrt(stats_ls.count())<<"\t"<<stats_ls.min()<<"\t"<<stats_ls.max()<<endl;
 
 
       }
@@ -845,7 +852,9 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 
 
   cplex.end();  
+  
 
+  return statsT_ls.mean();
   //  rbase->displayOperatingPos(_gr);
 
 }

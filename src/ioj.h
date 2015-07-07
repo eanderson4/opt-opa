@@ -14,23 +14,38 @@ class ioj : public isjn {
   void setup();
   rgrid * solveModel( isolve * is=NULL);
 
-  bool postLS(vec f, vec z, vec beta, vec SIGy,IloCplex * cplex, int iteration=0);
-  bool postLSN1(int n,vec yn, vec zn,vec beta, vec sdn, IloCplex * cplex, int iteration=0);
+  bool postLS(vec f, vec z, vec l,vec beta, vec SIGy,IloCplex * cplex, int iteration=0);
+  bool postLSN1(int n,vec yn, vec zn,vec ln, vec beta, vec sdn, IloCplex * cplex, int iteration=0);
 
 
  private:
-  IloNumVar _riskLS0;
-  IloRange _riskLS0Constraint;
-  IloNumVarArray _riskLSN;
-  IloRangeArray _riskLSNConstraint;
+  IloNumVar _riskLS;
+  IloRange _riskConstraintLS;
+  
+  IloNumVarArray _l0;
+  IloRangeArray _l0eq;
 
-  vector<IloNumVarArray> _l;
+  IloNumVarArray _riskLSN;
+  IloRangeArray _riskConstraintLSN;
+
+  vector<IloNumVarArray> _lN;
+  vector<IloRangeArray> _lNeq;
+
+  vector<IloNumVarArray> _z;
+  vector<IloNumVarArray> _yplus;
+  vector<IloNumVarArray> _sd;
+  vector<IloRangeArray> _yup;
+  vector<IloRangeArray> _ydown;
 
  
   double _epsLS;
   vec _epsLSN;
   
   vec _xdes;
+
+  vec _addCut;
+  mat _addCutN1;
+  mat _in;
 
 };
 #endif

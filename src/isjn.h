@@ -17,18 +17,22 @@ class isjn : public isj {
   vec getN1(int n, vec y0);
   vec getSDN(int n, vec y0, mat Cov);
 
-
-  IloNumVarArray getZ(int n){ return _z[n]; }
-  IloNumVarArray getYplus(int n){ return _yplus[n]; }
-  IloNumVarArray getSD(int n){ return _sd[n]; }
-
+  /*
+  vector<IloNumVarArray> getZN1(){ return _z; }
+  vector<IloNumVarArray> getYplusN1(){ return _yplus; }
+  vector<IloNumVarArray> getSDN1(){ return _sd; }
+  IloNumVarArray getRiskN1(){ return _risk; }
+  IloRangeArray getRiskConstraintN1(){ return _riskConstraint; }
+  vector<IloRangeArray> getYUpN1(){ return _yup; }
+  vector<IloRangeArray> getYDownN1(){ return _ydown; }
+  */
   vec getEpsN(){ return _epsN; }
   mat getLmat(){ return _L; }
   mat getHb(){ return _Hb; }
   mat getSigPsi(){ return _sigpsi; }
 
   vec getCheck(){ return _check; }
-  mat getAddCut(){ return _addCut; }
+  mat getAddCutN1(){ return _addCut; }
   mat getIn(){ return _in; }
 
 

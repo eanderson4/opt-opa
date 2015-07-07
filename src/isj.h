@@ -30,8 +30,13 @@ class isj : public igrid {
   gridcalc * getGC(){ return _gc; }
   IloNumVarArray getZ(){ return _z; }
   IloNumVarArray getYplus(){ return _yplus; }
+  IloNumVarArray getSDVar(){ return _sd; }
   IloNumVarArray getBetaVar(){ return _beta; }
   IloRangeArray getGenUp(){ return _genup; }
+  IloRangeArray getYUp(){ return _yup; }
+  IloRangeArray getYDown(){ return _ydown; }
+  IloNumVar getRisk(){ return _risk; }
+  IloRange getRiskConstraint(){ return _riskConstraint; }
 
   void setEps(double eps);
 
@@ -42,7 +47,7 @@ class isj : public igrid {
   vec getSD(){ return _sdSolve; }
   void setBetaSolve(vec beta){ _betaSolve=beta; }
   void setSDSolve(vec sd){ _sdSolve=sd; }
-
+  vec getAddCut(){ return _addCut; }
 
   
   class iterlimit: public exception 
