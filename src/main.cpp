@@ -290,7 +290,9 @@ int main(int argc, char* argv[]){
 
   vec xdesign = R.i()*meanctr;
 
-  xdesign.t().print("xdesign: ");
+  //  xdesign.t().print("xdesign: ");
+  cout<<"Design weighting (first 10)"<<endl;
+  for(int ci=0;ci<10;ci++) cout<<xdesign(ci)<<"\t";
 
   double avgx = mean(xdesign);
 
@@ -314,7 +316,7 @@ int main(int argc, char* argv[]){
 
   //  cin>>test;
   
-  resid.t().print("resid: ");
+  if(accu(resid)>.000001)  resid.t().print("resid: ");
   
   
   //  return 0;

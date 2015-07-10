@@ -16,7 +16,9 @@ rgrid *  ioj::solveModel( isolve * is){
   if(is!=NULL) is->setCplexParams(&cplex);
   int n=0;
 
-  _xdes.t().print("design weighting: ");
+  //  _xdes.t().print("design weighting: ");
+  cout<<"Design weighting (first 10)"<<endl;
+  for(int ci=0;ci<10;ci++) cout<<_xdes(ci)<<"\t";
   cout<<"Check: "<<sum(getCheck())<<" / "<<getGrid()->numBranches()<<endl;
   
   vec check2(Nl,fill::zeros);
@@ -25,6 +27,7 @@ rgrid *  ioj::solveModel( isolve * is){
 
   if (cplex.solve()){
     bool systemfail=true;
+    int numfailed=0;
     mat Am = getA()*getCm();
     vec ones(Nm,1,fill::ones);
     vec onesL(Nl,1,fill::ones);
@@ -75,7 +78,7 @@ rgrid *  ioj::solveModel( isolve * is){
 
       //      vec ycheck = onesL*y + Lmat*y;
       
-
+      numfailed=0;
       for(int i=0;i<Nl;i++){
 	if((getCheck()(i) && check2(i)) || (getCheck()(i) && fullcheck)){
 	  cout<<"Contingency: "<<i<<endl;
@@ -111,6 +114,11 @@ rgrid *  ioj::solveModel( isolve * is){
 	  cout<<"Post eval"<<endl;
 	  check2(i) =postLSN1(i,yn,zn,ln,beta,sdn,&cplex,n);
 	  systemfail += check2(i);
+	  numfailed += check2(i);
+	  if(numfailed>4*n) {
+	    cout<<"\n\nOver "<<4*n<<" contingencies have failed, resolve\n"<<endl;
+	    fullcheck=false;
+	  }
 	}
 	else cout<<"dC "<<i<<"\t";
       }
@@ -218,7 +226,7 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
   double account=0;
   double accountLS=0;
   
-  
+  mat A=getA();  
   ranvar rv;
   double eps = getEps();
   double L = getL();
@@ -234,6 +242,7 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
     cout<<"CUTTING ----------"<<endl;
     vec pi = getA()*getCg()*beta;
     for(int i=0; i<Nl; i++){
+      //      cout<<i<<endl;
       if (z(i)>.0000001){
       if (zprev(i) != z(i)){
        	account += z(i);
@@ -245,7 +254,9 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
 	  _riskConstraintLS.setExpr( _riskConstraintLS.getExpr() + _l0[i]);
 	  getYUp()[i].setExpr( getYplus()[i] - getF()[i] );
 	  getYDown()[i].setExpr( getYplus()[i] + getF()[i] );
+	  //	  cout<<"Set up N-1 Flow Variables \t"<<endl;
 	  double U = getGrid()->getBranch(i).getRateA();
+	  //	  cout<<"Get U\t";
 	  //	  getYplus[i].setBounds(0,U*Ueps);	  
 	  getYplus()[i].setBounds(0,IloInfinity);	  
 	  getModel()->add(getYUp()[i]);
@@ -254,29 +265,33 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
 	  //	  ss<<"yplus"<<i<<"[0,"<<U*Ueps<<"]";
 	  ss<<"yplus"<<i<<"[0,inf]";
 	  getYplus()[i].setName( ss.str().c_str() );
-	  
+	  //	  cout<<"Add and name \t"<<endl;
 	  _l0eq[i].setExpr( _l0[i] - _xdes(i)*getZ()[i] );
 	  getModel()->add(_l0eq[i]);
 	  ss.str("");
 	  ss<<"l"<<i<<"[0,"<<_epsLS<<"]";
 	  _l0[i].setName( ss.str().c_str() );
+	  //	  cout<<"LS risk constraint"<<endl;
 
 	}
 	//Add cuts for each line with positive risk
+	//	cout<<"Calculated "<<endl;
 	double y_i = abs(y(i));
+	//	cout<<"\ty"<<endl;
 	double sd_i = sqrt(SIGy(i));
+	//	cout<<"\tsd"<<endl;
 	//	cout<<"z_"<<i<<": "<<z(i)<<", y_"<<i<<": "<<y_i<<endl;
 	double U=getGrid()->getBranch(i).getRateA();
-	cout<<"Calculated y,sd,U\t";
+	//	cout<<"\tU"<<endl;
 	double dmu=rv.deriveMu(getL(),getP(),getPc(),y_i/U,sd_i/U);
-	cout<<"Got dmu\t";
+	//	cout<<"Got dmu"<<endl;
 	double dsigma=rv.deriveSigma(getL(),getP(),getPc(),y_i/U,sd_i/U);
-	cout<<"Got dsigma\t";
+	//	cout<<"Got dsigma\t"<<endl;
 	IloRange cut(getEnv(),-IloInfinity,0);
 	cut.setExpr( dmu/U*(getYplus()[i] - y_i) + dsigma/U*(getSDVar()[i] - sd_i) + z(i) - getZ()[i]);
 	//	cout<<cut<<endl;
 	getModel()->add(cut);
-	cout<<"Added Cut\t";
+	//	cout<<"Added Cut\t"<<endl;
 	_addCut(i)=_addCut(i)+1;
 	
 	//Add cuts to describe standard deviation of branch flow
@@ -292,14 +307,19 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
 	//	cout<<"\n";
 	for( int j=0; j<Ng;j++){
 	  //double pf_j = term;
-	  double pf_j = getA()(i,getIndexG()(j))*term;
+	  cout<<j<<",";
+	  //	  cout<<"A: "<<getA()(i,getIndexG()(j));
+	  cout<<"in ("<<getGrid()->getGen(j).getPmin()<<",";
+	  cout<<getGrid()->getGen(j).getPmax()<<")"<<endl;
+	  double pf_j = A(i,getIndexG()(j))*term;
 	  cut_sd.setExpr( cut_sd.getExpr() + pf_j*(getBetaVar()[j]-beta(j)) );
 	}
 	
 	
 	//	cout<<cut_sd<<endl;
 	getModel()->add(cut_sd);
-	cout<<"Added SD Cut"<<endl;
+	//	cout<<"Added SD Cut"<<endl;
+
 	//	cout<<"\n\n";
       }
       else{ cout<<"z("<<i<<") has not changed, no cut"<<endl; }
@@ -345,7 +365,7 @@ bool ioj::postLSN1(int n, vec yn, vec zn, vec l,vec beta, vec sdn, IloCplex * cp
   if(rln<=_epsLSN(n)+tol+.1) return false;  // SYSTEM SUCCEEDED
   else{
     cout<<"CUTTING ----------"<<endl;
-    l.t().print("LS: ");
+    //    l.t().print("LS: ");
     for(int i=0; i<Nl; i++){
       if (zn(i)>tol/100){
        	account += zn(i);
@@ -414,22 +434,33 @@ bool ioj::postLSN1(int n, vec yn, vec zn, vec l,vec beta, vec sdn, IloCplex * cp
 	//	if(sd_i>0)
 	  term=(psi * getSigDelta() - (getSig()(i) + Lmat(i,n)*getSig()(n)))/sd_i;
 	  //	cout<<"\n";
-	for( int j=0; j<Ng;j++){
-	  double pf_j = (A(i,indexG(j)) + Lmat(i,n)*A(n,indexG(j)))*term;
-	  cut_sd.setExpr( cut_sd.getExpr() + pf_j*(getBetaVar()[j]-beta(j)) );
-	}
-	//	cout<<"\n";
-	//	cout<<"sd_i: "<<sd_i<<" - "<<sqrt(sdn(i))<<endl;
-	//	cout<<"pi_i: "<<pi_i<<endl;
+	  if(sd_i>0){
+	    for( int j=0; j<Ng;j++){
+	      double pf_j = (A(i,indexG(j)) + Lmat(i,n)*A(n,indexG(j)))*term;
+	      /*	  if (std::isinf(pf_j)){
+			  cout<<"A(i,g): "<<A(i,indexG(j))<<endl;
+			  cout<<"Lmat: "<<Lmat(i,n)<<endl;
+			  cout<<"A(n,g): "<<A(n,indexG(j))<<endl;
+			  cout<<"term: "<<term<<endl;
+			  cout<<"psi: "<<psi<<endl;
+			  cout<<"sd_i: "<<sd_i<<endl;
+			  }*/
+	      cut_sd.setExpr( cut_sd.getExpr() + pf_j*(getBetaVar()[j]-beta(j)) );
+	    }
+	    getModel()->add(cut_sd);
+	  }
+	    //	cout<<"\n";
+	    //	cout<<"sd_i: "<<sd_i<<" - "<<sqrt(sdn(i))<<endl;
+	    //	cout<<"pi_i: "<<pi_i<<endl;
+	    
+	//	cout<<"cut: "<<cut<<endl;
+	//	cout<<"cut_sd: "<<cut_sd<<endl;
 
-	cout<<"cut: "<<cut<<endl;
-	cout<<"cut_sd: "<<cut_sd<<endl;
-	getModel()->add(cut_sd);
 
-	cout<<"RC: ";
-	cout<<_riskConstraintLSN[n]<<endl;
-	cout<<"Lneq: "<<_lNeq[n][i]<<endl;
-	cout<<"\n\n";
+	//	cout<<"RC: ";
+	//	cout<<_riskConstraintLSN[n]<<endl;
+	//	cout<<"Lneq: "<<_lNeq[n][i]<<endl;
+	//	cout<<"\n\n";
        	    
       }
     }
