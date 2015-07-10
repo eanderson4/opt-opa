@@ -18,6 +18,7 @@ void iopa::runTrials(ostream & out,vec z,int N,double num){
 
   
   IloCplex cplex(*ig.getModel());
+  cplex.setOut(ig.getEnv().getNullStream());
   is.setCplexParams(&cplex);
 
 
@@ -636,6 +637,7 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
   IloCplex cplex(*ig.getModel());
   //  is.setCplexParams(&cplex);
   //  cplex.setParam( IloCplex::RootAlg, 0 ); 
+  cplex.setOut(ig.getEnv().getNullStream());
 
   rgrid * rbase = ig.solveModel(&cplex);
   vec f0=_gc->convert(rbase->getF());
@@ -670,6 +672,7 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
   vec l0 = xdes % z;
 
     for(int n=Nstart;n<Nl;n++){
+    cout<<"Contingency "<<n<<endl;
       if(check(n)){
 	vec fn = n1->getN1(n,f,g);
 	vec sdn(Nl);
@@ -697,6 +700,8 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
   IloNumArray gen(ig.getEnv());
 
   for(int n=0;n<num;n++){
+
+    cout<<"trial "<<n<<endl;
     del_g mod(_gr); 
     
     //    z.t().print("Initial Risk: ");

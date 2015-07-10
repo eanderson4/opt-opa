@@ -293,7 +293,8 @@ int main(int argc, char* argv[]){
   //  xdesign.t().print("xdesign: ");
   cout<<"Design weighting (first 10)"<<endl;
   for(int ci=0;ci<10;ci++) cout<<xdesign(ci)<<"\t";
-
+  cout<<endl;
+  
   double avgx = mean(xdesign);
 
   vec xdes(Nl,fill::zeros);
