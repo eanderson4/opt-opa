@@ -558,51 +558,12 @@ int main(int argc, char* argv[]){
 	cout<<endl;
 	cerr<<"jcc\t"<<o3<<"\t"<<r3<<"\t"<<stats_r3.mean()<<"\t"<<stats_r3.max()<<endl;
 	*/
-	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
-	rgrid * rsjn = sjn.solveModel(&is);
 
 
-		
-	double o4=rsjn->getObjective();
-	vec f4=gc.convert(rsjn->getF());
-	vec g4=gc.convert(rsjn->getG());
-	vec beta4=sjn.getBeta();
-	mat term4 = A*(Cg*beta4*ones.t() - Cm);    
-	mat SIGy4 = term4*SIG*term4.t();
-	vec sd4 = SIGy4.diag();
-	vec z4=gc.risk(f4,sd4,L,p,pc);
-	double r4 = sum(z4);
-	vec p4=gc.lineprob(f4,sd4);
-	IloCplex::CplexStatus s4=rsjn->getStatus();
 
-	vec fU4(Nl);
-	vec sdU4(Nl);
-	for(int i=0;i<Nl;i++){
-	  double U = gr->getBranch(i).getRateA();
-	  fU4(i) = abs(f4(i))/U;
-	  sdU4(i) = sd4(i)/U;
-	}
+
 	
-	running_stat<double> stats_r4;
-	running_stat<double> stats_ls4;
-	for(int i=0;i<Nl;i++){
-	  if(check(i)==1){
-	    vec f4n = n1.getN1(i,f4,g4);
-	    vec sdn(Nl);
-	    for(int e=0;e<Nl;e++){
-	      double U = gr->getBranch(i).getRateA();
-	      sdn(e) = SIGy4(e,e) + 2*Lo(e,i)*SIGy4(e,i)+ Lo(e,i)*Lo(e,i)*SIGy4(i,i);
-	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
-	      //	      else sdn(e)=sdn(e)/U;
-	    }
-	    vec z4n=gc.risk(f4n,sdn,L,p,pc);
-	    double r4n = sum(z4n);
-	    stats_r4(r4n);
-	    stats_ls4(accu(xdes % z4n));
-	  }
-	}
 	
-
 	//	cout<<"HERE"<<endl;
 	
 	//	return 0;
@@ -649,6 +610,53 @@ int main(int argc, char* argv[]){
 	    stats_ls6(accu(xdes % z6n));
 	  }
 	}
+
+
+
+	isjn sjn(gr, &gc, SIG, indexM, L, p, pc, eps, eN, .5);
+	rgrid * rsjn = sjn.solveModel(&is);
+
+	
+		
+	double o4=rsjn->getObjective();
+	vec f4=gc.convert(rsjn->getF());
+	vec g4=gc.convert(rsjn->getG());
+	vec beta4=sjn.getBeta();
+	mat term4 = A*(Cg*beta4*ones.t() - Cm);    
+	mat SIGy4 = term4*SIG*term4.t();
+	vec sd4 = SIGy4.diag();
+	vec z4=gc.risk(f4,sd4,L,p,pc);
+	double r4 = sum(z4);
+	vec p4=gc.lineprob(f4,sd4);
+	IloCplex::CplexStatus s4=rsjn->getStatus();
+
+	vec fU4(Nl);
+	vec sdU4(Nl);
+	for(int i=0;i<Nl;i++){
+	  double U = gr->getBranch(i).getRateA();
+	  fU4(i) = abs(f4(i))/U;
+	  sdU4(i) = sd4(i)/U;
+	}
+	
+	running_stat<double> stats_r4;
+	running_stat<double> stats_ls4;
+	for(int i=0;i<Nl;i++){
+	  if(check(i)==1){
+	    vec f4n = n1.getN1(i,f4,g4);
+	    vec sdn(Nl);
+	    for(int e=0;e<Nl;e++){
+	      double U = gr->getBranch(i).getRateA();
+	      sdn(e) = SIGy4(e,e) + 2*Lo(e,i)*SIGy4(e,i)+ Lo(e,i)*Lo(e,i)*SIGy4(i,i);
+	      if(sdn(e)<0 && sdn(e)>=-.0000001) sdn(e)=0;
+	      //	      else sdn(e)=sdn(e)/U;
+	    }
+	    vec z4n=gc.risk(f4n,sdn,L,p,pc);
+	    double r4n = sum(z4n);
+	    stats_r4(r4n);
+	    stats_ls4(accu(xdes % z4n));
+	  }
+	}
+
 
 	cout<<"SJ N1"<<"\t"<<s4<<endl;
 	cout<<"C4: "<<o4<<endl;
@@ -877,8 +885,13 @@ int main(int argc, char* argv[]){
       oj1 += ".out";
       oj2 += ".out";
 
+      string comp("comp");
+      comp += argv[17];
+      comp += ".out";
+
       ofstream myoj1( oj1.c_str() );
       ofstream myoj2( oj2.c_str() );
+      ofstream mycomp( comp.c_str() );
       iopa opa(gr,&gc,opaL,opap,L,p);
 
     //    opa.runTrials(myopf, &n1, f0, g0, SIGy0,T,o0);
@@ -886,8 +899,10 @@ int main(int argc, char* argv[]){
     //    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
     //    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
       double mean4,mean6;
-      mean4 = opa.runTrials(myjcc1,myjcc2, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart);
-      mean6 = opa.runTrials(myoj1,myoj2, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart);
+      mycomp << " OPA for JCC " <<endl;
+      mean4 = opa.runTrials(myjcc1,myjcc2,mycomp, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart);
+      mycomp << " \n OPA for OPA-JCC "<<endl;
+      mean6 = opa.runTrials(myoj1,myoj2,mycomp, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart);
 
     /*    for(int n=0;n<Nl;n++){
       if(check(n)){
@@ -909,7 +924,13 @@ int main(int argc, char* argv[]){
     myoj1.close();
     myoj2.close();
 
-    ofstream mycomp( "comp.out" );
+
+
+    mycomp<<"Parameters: "<<endl;
+    mycomp<<"m0\tm1\tmg\teps\tepsN\tpL\tpG\tL\tp\tB\tT"<<endl;
+    mycomp<<m0<<"\t"<<m1<<"\t"<<mg<<"\t"<<eps<<"\t"<<epsN<<"\t"<<epsL<<"\t"<<epsG<<"\t"<<L<<"\t"<<p<<"\t"<<B<<"\t"<<T<<endl;
+    mycomp<<"epsLS\tepsLSN\topaL\topap"<<endl;
+    mycomp<<epsLS<<"\t"<<epsLSN<<"\t"<<opaL<<"\t"<<opap<<endl;    
 
     mycomp<<" --- \t --- RISK 2nd--- \t ---\n"<<endl;
     /*
@@ -965,6 +986,11 @@ int main(int argc, char* argv[]){
 	mycomp << "stdv  = " << stats_r4.stddev()  << endl;
 	mycomp << "min  = " << stats_r4.min()  << endl;
 	mycomp << "max  = " << stats_r4.max()  << endl;
+	mycomp<<"ls N-1:"<<endl;
+	mycomp << "mean = " << stats_ls4.mean() << endl;
+	mycomp << "stdv  = " << stats_ls4.stddev()  << endl;
+	mycomp << "min  = " << stats_ls4.min()  << endl;
+	mycomp << "max  = " << stats_ls4.max()  << endl;
 	mycomp<<endl;
 
 	mycomp<<"\n\n";
@@ -979,6 +1005,11 @@ int main(int argc, char* argv[]){
 	mycomp << "stdv  = " << stats_r6.stddev()  << endl;
 	mycomp << "min  = " << stats_r6.min()  << endl;
 	mycomp << "max  = " << stats_r6.max()  << endl;
+	mycomp<<"ls N-1:"<<endl;
+	mycomp << "mean = " << stats_ls6.mean() << endl;
+	mycomp << "stdv  = " << stats_ls6.stddev()  << endl;
+	mycomp << "min  = " << stats_ls6.min()  << endl;
+	mycomp << "max  = " << stats_ls6.max()  << endl;
 	mycomp<<endl;
 
 	mycomp<<"\n\n";

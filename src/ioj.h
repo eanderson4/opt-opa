@@ -14,7 +14,7 @@ class ioj : public isjn {
   void setup();
   rgrid * solveModel( isolve * is=NULL);
 
-  bool postLS(vec f, vec z, vec l,vec beta, vec SIGy,IloCplex * cplex, int iteration=0);
+  bool postLS(vec f, vec z, vec zprev, vec l,vec beta, vec SIGy,IloCplex * cplex, int iteration=0);
   bool postLSN1(int n,vec yn, vec zn,vec ln, vec beta, vec sdn, IloCplex * cplex, int iteration=0);
 
 

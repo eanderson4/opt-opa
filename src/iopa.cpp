@@ -615,7 +615,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 }
 
 
-double iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart){
+double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart){
   int Nl = f.n_elem; 
   std::clock_t start;
   double duration;
@@ -849,6 +849,12 @@ double iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, ma
         cerr<<statsT_ls.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_ls.mean()<<"\t"<<statsT_ls.stddev()<<"\t"<<statsT_ls.stddev()/sqrt(statsT_ls.count())<<"\t"<<statsT_ls.min()<<"\t"<<statsT_ls.max()<<endl;
 	cerr<<"Stages: "<<endl;
     cerr<<statsT_stages.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_stages.mean()<<"\t"<<statsT_stages.stddev()<<"\t"<<statsT_stages.stddev()/sqrt(statsT_stages.count())<<"\t"<<statsT_stages.min()<<"\t"<<statsT_stages.max()<<endl;
+
+
+    mycomp<<"Load Shed: (count cost risk ls_mean ls_stddv ls_stderr ls_min ls_max)"<<endl;
+        mycomp<<statsT_ls.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_ls.mean()<<"\t"<<statsT_ls.stddev()<<"\t"<<statsT_ls.stddev()/sqrt(statsT_ls.count())<<"\t"<<statsT_ls.min()<<"\t"<<statsT_ls.max()<<endl;
+	mycomp<<"Stages: (count cost risk S_mean S_stddv S_stderr S_min S_max)"<<endl;
+    mycomp<<statsT_stages.count()<<"\t"<<cost<<"\t"<<r0<<"\t"<<statsT_stages.mean()<<"\t"<<statsT_stages.stddev()<<"\t"<<statsT_stages.stddev()/sqrt(statsT_stages.count())<<"\t"<<statsT_stages.min()<<"\t"<<statsT_stages.max()<<endl;
 
 
   cplex.end();  

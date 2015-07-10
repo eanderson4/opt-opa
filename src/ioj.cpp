@@ -28,6 +28,7 @@ rgrid *  ioj::solveModel( isolve * is){
     mat Am = getA()*getCm();
     vec ones(Nm,1,fill::ones);
     vec onesL(Nl,1,fill::ones);
+    vec zprev(Nl,1,fill::zeros);
     mat ker = ones.t()*getSIGm()*ones;
     mat AmSone = Am*getSIGm()*ones;
     mat Ag = getA()*getCg();
@@ -56,19 +57,19 @@ rgrid *  ioj::solveModel( isolve * is){
       vec z=getGC()->risk(y,SIGy.diag(),getL(),getP(),getPc());
       vec l=_xdes % z;
 
-      x.t().print("x: ");
-      y.t().print("y: ");
-      beta.t().print("beta: ");
+      //      x.t().print("x: ");
+      //      y.t().print("y: ");
+      //      beta.t().print("beta: ");
       //      pi.t().print("pi: ");
-      z.t().print("z: ");
-      l.t().print("l: ");
+      //      z.t().print("z: ");
+      //      l.t().print("l: ");
       cout<<"r: "<<accu(z)<<endl;
       cout<<"l_tot: "<<accu(l)<<endl;
 
 
       cout<<"Base system"<<endl;
-      systemfail = postLS(y,z,l,beta,SIGy.diag(),&cplex);
-      
+      systemfail = postLS(y,z,zprev,l,beta,SIGy.diag(),&cplex);
+      zprev=z;
       //cout<<getGenUp()[1]<<endl;
       //      cout<<x(1)<<"\t"<<beta(1)<<endl;
 
@@ -84,7 +85,7 @@ rgrid *  ioj::solveModel( isolve * is){
   
 	  for(int e=0;e<Nl;e++){
 	    sdn(e) = SIGy(e,e) + 2*Lmat(e,i)*SIGy(e,i)+ Lmat(e,i)*Lmat(e,i)*SIGy(i,i);
-	    if(sdn(e)<0.000001) sdn(e)=0;
+	    if(sdn(e)<0.0000001) sdn(e)=0;
 	  }
 
 	  /*	  double sdT=getSigDelta();
@@ -106,7 +107,7 @@ rgrid *  ioj::solveModel( isolve * is){
 
 	  vec zn=getGC()->risk(yn,sdn,getL(),getP(),getPc());
 	  vec ln=_xdes % zn;
-	  if(!yn.is_finite()) yn.print("yn: ");
+	  //	  if(!yn.is_finite()) yn.print("yn: ");
 	  cout<<"Post eval"<<endl;
 	  check2(i) =postLSN1(i,yn,zn,ln,beta,sdn,&cplex,n);
 	  systemfail += check2(i);
@@ -208,7 +209,7 @@ void ioj::setup(){
   
 }
 
-bool ioj::postLS(vec y, vec z,vec l, vec beta, vec SIGy,IloCplex * cplex, int iteration){
+bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cplex, int iteration){
   stringstream ss;
   //define tolerance for line risk > 0
   double tol = 5*pow(10,-4);
@@ -227,16 +228,18 @@ bool ioj::postLS(vec y, vec z,vec l, vec beta, vec SIGy,IloCplex * cplex, int it
   double r = sum(z);
   double rl = sum(l);
     cout<<"Risk: "<<r<<endl;
-  cout<<"Risk LS: "<<rl<<endl;
+    cout<<"Risk LS: "<<rl<<", Desired: "<<_epsLS<<endl;
   if(rl<=_epsLS+tol) return false;
   else{
     cout<<"CUTTING ----------"<<endl;
     vec pi = getA()*getCg()*beta;
     for(int i=0; i<Nl; i++){
-      if (z(i)>0){
+      if (z(i)>.0000001){
+      if (zprev(i) != z(i)){
        	account += z(i);
        	accountLS += l(i);
 	cout<<"Line "<<i<<" cuts"<<endl;
+	cout<<"z: "<<z(i)<<", l: "<<l(i)<<endl;
 	if(_addCut(i)==0){
 	  cout<<"Initialize Cutting Variables for Line "<<i<<endl;
 	  _riskConstraintLS.setExpr( _riskConstraintLS.getExpr() + _l0[i]);
@@ -264,12 +267,16 @@ bool ioj::postLS(vec y, vec z,vec l, vec beta, vec SIGy,IloCplex * cplex, int it
 	double sd_i = sqrt(SIGy(i));
 	//	cout<<"z_"<<i<<": "<<z(i)<<", y_"<<i<<": "<<y_i<<endl;
 	double U=getGrid()->getBranch(i).getRateA();
+	cout<<"Calculated y,sd,U\t";
 	double dmu=rv.deriveMu(getL(),getP(),getPc(),y_i/U,sd_i/U);
+	cout<<"Got dmu\t";
 	double dsigma=rv.deriveSigma(getL(),getP(),getPc(),y_i/U,sd_i/U);
+	cout<<"Got dsigma\t";
 	IloRange cut(getEnv(),-IloInfinity,0);
 	cut.setExpr( dmu/U*(getYplus()[i] - y_i) + dsigma/U*(getSDVar()[i] - sd_i) + z(i) - getZ()[i]);
 	//	cout<<cut<<endl;
 	getModel()->add(cut);
+	cout<<"Added Cut\t";
 	_addCut(i)=_addCut(i)+1;
 	
 	//Add cuts to describe standard deviation of branch flow
@@ -288,10 +295,14 @@ bool ioj::postLS(vec y, vec z,vec l, vec beta, vec SIGy,IloCplex * cplex, int it
 	  double pf_j = getA()(i,getIndexG()(j))*term;
 	  cut_sd.setExpr( cut_sd.getExpr() + pf_j*(getBetaVar()[j]-beta(j)) );
 	}
+	
+	
 	//	cout<<cut_sd<<endl;
 	getModel()->add(cut_sd);
-	
+	cout<<"Added SD Cut"<<endl;
 	//	cout<<"\n\n";
+      }
+      else{ cout<<"z("<<i<<") has not changed, no cut"<<endl; }
       }
     }
     cout<<"Accounted: "<<account<<endl;
