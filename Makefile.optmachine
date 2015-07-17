@@ -1,0 +1,61 @@
+# A Makefile for base power system files, needs CPLEX/CONCERT!!!!!!!!!
+
+#This is for main comp
+
+HOMEDIR=/mnt/ws/home/eanderson/git/opt-opa
+CPLEX_STUDIO=/mnt/ws/home/eanderson/CPLEX_Studio
+ARMA=/mnt/ws/home/eanderson/arma/usr/local
+SQL=/mnt/ws/home/eanderson/sqlite
+CPLEX_ARCH=x86-64_sles10_4.1
+
+CPLEX_INC_DIR=${CPLEX_STUDIO}/cplex/include
+CONCERT_INC_DIR=${CPLEX_STUDIO}/concert/include
+ARMA_INC_DIR=${ARMA}/include
+SQL_INC_DIR=${SQL}/include
+
+CPLEX_LIB_DIR=${CPLEX_STUDIO}/cplex/lib/${CPLEX_ARCH}/static_pic
+CONCERT_LIB_DIR=${CPLEX_STUDIO}/concert/lib/${CPLEX_ARCH}/static_pic
+ARMA_LIB_DIR=${ARMA}/lib64
+SQL_LIB_DIR=${SQL}/lib
+ATLAS_LIB=/usr/lib64/atlas
+
+CPLEX_INCS = -I${CPLEX_INC_DIR} -I${CONCERT_INC_DIR} -I${ARMA_INC_DIR} -I${SQL_INC_DIR}
+CPLEX_LIBS = -L${CPLEX_LIB_DIR} -lilocplex -lcplex -L${CONCERT_LIB_DIR} -lconcert -lm -O2 -L${ARMA_LIB_DIR} -larmadillo -L${ATLAS_LIB} -llapack -lblas -pthread -lpthread -ldl -L${SQL_LIB_DIR}  -lsqlite3
+
+CXX	= /progs/gcc-4.7/bin/g++-4.7
+#CXX	= g++
+#CXX = g++
+CXXFLAGS := -g -m64 -Wall -Wno-deprecated -Wunused-variable -fPIC\
+        -fexceptions -DIL_STD -std=c++11 -l stdc++
+
+PROJ_INC = -I${HOMEDIR}/src/
+
+INCS = ${CPLEX_INCS} 
+LIBS = ${CPLEX_LIBS}
+
+
+SRCSALL = $(wildcard src/*.cpp)
+MAIN = $(wildcard src/main*cpp)
+SRCSWOMAIN = $(filter-out ${MAIN}, $(SRCSALL))
+SRCS = ${SRCSWOMAIN} src/main.cpp
+
+OBJS = ${SRCS:.cpp=.o}
+
+
+.cpp.o:
+	${CXX} ${CXXFLAGS} ${INCS} -c $< -o $@
+
+pow: ${OBJS}
+	${CXX} ${CXXFLAGS} ${INCS} ${OBJS} ${LIBS}  -o $@ 
+
+depend:
+	$(CXX) -MM ${CXXFLAGS} ${INCS} ${SRCS} > prog.d
+
+
+clean:
+	rm -f ${OBJS}
+	rm -f *~
+	rm -f src/*~
+	rm -f case*.in
+
+include prog.d
