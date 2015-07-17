@@ -1,0 +1,67 @@
+# A Makefile for base power system files, needs CPLEX/CONCERT!!!!!!!!!
+
+#This is for main comp
+
+HOMEDIR=/home/eric/git/pow-opa
+CPLEX_STUDIO=/home/eric/CPLEX_Studio
+CPLEX_ARCH=x86-64_sles10_4.1
+
+CPLEX_INC_DIR=${CPLEX_STUDIO}/cplex/include
+CONCERT_INC_DIR=${CPLEX_STUDIO}/concert/include
+
+CPLEX_LIB_DIR=${CPLEX_STUDIO}/cplex/lib/${CPLEX_ARCH}/static_pic
+CONCERT_LIB_DIR=${CPLEX_STUDIO}/concert/lib/${CPLEX_ARCH}/static_pic
+
+CPLEX_INCS = -I${CPLEX_INC_DIR} -I${CONCERT_INC_DIR}
+CPLEX_LIBS = -L$(CPLEX_LIB_DIR) -lilocplex -lcplex -L$(CONCERT_LIB_DIR) -lconcert -lm -O2 -larmadillo -llapack -lblas -pthread -lpthread -ldl -lsqlite3
+
+CXX	= g++
+CXXFLAGS := -g -m64 -Wall -Wno-deprecated -Wunused-variable -fPIC\
+        -fexceptions -DIL_STD -std=c++11
+
+PROJ_INC = -I${HOMEDIR}/src/
+
+INCS = ${CPLEX_INCS} ${PROJ_INC}
+LIBS = ${CPLEX_LIBS}
+
+SRCS = $(wildcard src/*.cpp)
+MAIN = $(wildcard src/main*cpp)
+SRCSWOMAIN = $(filter-out ${MAIN}, $(SRCS))
+SRCSMAIN = ${SRCSWOMAIN} src/main.cpp
+SRCSDB = ${SRCSWOMAIN} src/main-db.cpp
+SRCSDESIGN = ${SRCSWOMAIN} src/main-design.cpp
+
+OBJSMAIN = ${SRCSMAIN:.cpp=.o}
+OBJSDB = ${SRCSDB:.cpp=.o}
+OBJSDESIGN = ${SRCSDESIGN:.cpp=.o}
+
+
+.cpp.o:
+	g++ ${CXXFLAGS} ${INCS} -c $< -o $@
+
+pow: ${OBJSMAIN}
+	g++ ${CXXFLAGS} ${INCS} ${OBJSMAIN} ${LIBS}  -o $@ 
+
+depend:
+	$(CXX) -MM ${CXXFLAGS} ${INCS} ${SRCS} > prog.d
+
+db: ${OBJSDB}
+	g++ ${CXXFLAGS} ${INCS} ${OBJSDB} ${LIBS}  -o DB
+
+des: ${OBJSDESIGN}
+	g++ ${CXXFLAGS} ${INCS} ${OBJSDESIGN} ${LIBS}  -o des
+
+ec:
+	echo "${SRCS}"
+	echo "${MAIN}"
+	echo "${SRCSWOMAIN}"
+	echo "${SRCSMAIN}"
+
+clean:
+	rm -f ${OBJS}
+	rm -f *~
+	rm -f src/*~
+	rm -f src/*.o
+	rm -f case*.in
+
+include prog.d

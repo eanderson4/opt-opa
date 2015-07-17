@@ -33,9 +33,10 @@ int main(int argc, char* argv[]){
 	<<"\t<p2> probability of failure at nominal (OPA)\n"
 	<<"\t<e0_LS> loadshed risk constraint (OJ)\n"
 	<<"\t<e1_LS> N-1 loadshed risk constraint (OJ)\n"
-	<<"\t<N> Identifier for file output (OPA)\n"
+	<<"\t<Name out> Identifier for file output (OPA)\n"
+	<<"\t<Name in> Identifier for file output (OPA)\n"
 	<<"\t<Nstart> Start at number (OPA)\n"
-	<<"\t<Nstart> End at number (OPA)\n"<<endl;
+	<<"\t<Nend> End at number (OPA)\n"<<endl;
     return 1;
   }
 
@@ -201,7 +202,39 @@ int main(int argc, char* argv[]){
   n1.addCost();
   vec check = n1.getCheck();
 
+  string desstr("data/des-");
+  desstr += argv[18];
+  desstr += ".out";
 
+  string line;
+  ifstream desfile (desstr.c_str());
+  istringstream infilestream;
+
+  vec xdes(Nl,fill::zeros);
+
+  if (desfile.is_open())
+    {
+      while ( getline (desfile,line) )
+	{
+	  cout << line << '\n';
+	  infilestream.clear();
+	  infilestream.str(line);
+	  double index;
+	  double weight;
+	  infilestream >> index 
+		       >> weight;   // Posible change to file structure, two riskctrs
+	  xdes(index)=weight;
+	}
+      desfile.close();
+    }
+  else cout << "Unable to open file";
+
+  cout<<"Design weighting (first 10)"<<endl;
+  for(int ci=0;ci<10;ci++) cout<<xdes(ci)<<"\t";
+  cout<<endl;
+
+
+  /*
   // READ IN INPUT FILE and calculating weighting factor
   int ctr=0;
   vec indexmap(Nl,fill::zeros);
@@ -323,7 +356,7 @@ int main(int argc, char* argv[]){
   if(accu(resid)>.000001)  resid.t().print("resid: ");
   
   
-  //  return 0;
+  */  //  return 0;
 
 
 
@@ -873,8 +906,8 @@ int main(int argc, char* argv[]){
     ofstream mycc( "cc.out" );
     ofstream myjcc( "jcc.out" );
       */
-      int Nstart = atoi(argv[18]);
-      int Nend = atoi(argv[19]);
+      int Nstart = atoi(argv[19]);
+      int Nend = atoi(argv[20]);
       string jcc1("jccS");
       string jcc2("jccD");
       jcc1 += argv[17];

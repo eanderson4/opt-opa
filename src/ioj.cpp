@@ -116,8 +116,8 @@ rgrid *  ioj::solveModel( isolve * is){
 	  check2(i) =postLSN1(i,yn,zn,ln,beta,sdn,&cplex,n);
 	  systemfail += check2(i);
 	  numfailed += check2(i);
-	  if(numfailed>4*n) {
-	    cout<<"\n\nOver "<<4*n<<" contingencies have failed, resolve\n"<<endl;
+	  if(numfailed>3*n) {
+	    cout<<"\n\nOver "<<3*n<<" contingencies have failed, resolve\n"<<endl;
 	    fullcheck=false;
 	  }
 	}
