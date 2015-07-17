@@ -308,10 +308,10 @@ bool ioj::postLS(vec y, vec z,vec zprev,vec l, vec beta, vec SIGy,IloCplex * cpl
 	//	cout<<"\n";
 	for( int j=0; j<Ng;j++){
 	  //double pf_j = term;
-	  cout<<j<<",";
+	  //	  cout<<j<<",";
 	  //	  cout<<"A: "<<getA()(i,getIndexG()(j));
-	  cout<<"in ("<<getGrid()->getGen(j).getPmin()<<",";
-	  cout<<getGrid()->getGen(j).getPmax()<<")"<<endl;
+	  //	  cout<<"in ("<<getGrid()->getGen(j).getPmin()<<",";
+	  //	  cout<<getGrid()->getGen(j).getPmax()<<")"<<endl;
 	  double pf_j = A(i,getIndexG()(j))*term;
 	  cut_sd.setExpr( cut_sd.getExpr() + pf_j*(getBetaVar()[j]-beta(j)) );
 	}

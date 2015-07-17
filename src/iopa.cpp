@@ -616,7 +616,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 }
 
 
-double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart){
+double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart,int Nend){
   int Nl = f.n_elem; 
   std::clock_t start;
   double duration;
@@ -670,8 +670,10 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
   z=_gc->risk(f,sd0,_Lr,_pr,.85);	
   double r0 = sum(z);
   vec l0 = xdes % z;
-
-    for(int n=Nstart;n<Nl;n++){
+  int endspot=Nend;
+  if ( Nl<=endspot ) endspot=Nl;
+  cout<<"Start: "<<Nstart<<", End: "<<endspot<<endl;
+  for(int n=Nstart;n<endspot;n++){
     cout<<"Contingency "<<n<<endl;
       if(check(n)){
 	vec fn = n1->getN1(n,f,g);
@@ -684,7 +686,7 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
 	}
 	z=_gc->risk(fn,sdn,_Lr,_pr,.85);
 	double r = sum(z);
-
+	vec lnomain = xdes.t()*z;
 	z(n)=1;
 	vec  l = xdes.t()*z;
 	//	z.t().print("Risk: ");	
@@ -826,7 +828,8 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
 
 
       double rl = accu(l);
-      out<<n<<"\t"<<cost<<"\t"<<r<<"\t"<<rl<<"\t"<<stats_ls.count()<<"\t"<<stats_ls.mean()<<"\t"<<stats_ls.stddev()<<"\t"<<stats_ls.stddev()/sqrt(stats_ls.count())<<"\t"<<stats_ls.min()<<"\t"<<stats_ls.max()<<endl;
+      double rlnomain = accu(lnomain);
+      out<<n<<"\t"<<cost<<"\t"<<r<<"\t"<<rlnomain<<"\t"<<rl<<"\t"<<stats_ls.count()<<"\t"<<stats_ls.mean()<<"\t"<<stats_ls.stddev()<<"\t"<<stats_ls.stddev()/sqrt(stats_ls.count())<<"\t"<<stats_ls.min()<<"\t"<<stats_ls.max()<<endl;
 
 
       }

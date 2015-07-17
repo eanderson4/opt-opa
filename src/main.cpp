@@ -34,7 +34,8 @@ int main(int argc, char* argv[]){
 	<<"\t<e0_LS> loadshed risk constraint (OJ)\n"
 	<<"\t<e1_LS> N-1 loadshed risk constraint (OJ)\n"
 	<<"\t<N> Identifier for file output (OPA)\n"
-	<<"\t<Nstart> Start at number (OPA)\n"<<endl;
+	<<"\t<Nstart> Start at number (OPA)\n"
+	<<"\t<Nstart> End at number (OPA)\n"<<endl;
     return 1;
   }
 
@@ -218,6 +219,8 @@ int main(int argc, char* argv[]){
   int ctr2=0;
   vec indexctr(ctr,fill::zeros);
   vec riskctr(ctr,fill::zeros);
+  vec risk2ctr(ctr,fill::zeros);
+  vec risk3ctr(ctr,fill::zeros);
   vec trialctr(ctr,fill::zeros);
   vec meanctr(ctr,fill::zeros);
   vec stdvctr(ctr,fill::zeros);
@@ -242,7 +245,7 @@ int main(int argc, char* argv[]){
 	  infilestream.str(line);
 	  cout << line << '\n';
 	  infilestream >> indexctr(ctr2) 
-		   >> riskctr(ctr2) 
+		       >> riskctr(ctr2)   // Posible change to file structure, two riskctrs
 		   >> trialctr(ctr2) 
 		   >> meanctr(ctr2) 
 		   >> stdvctr(ctr2);
@@ -871,6 +874,7 @@ int main(int argc, char* argv[]){
     ofstream myjcc( "jcc.out" );
       */
       int Nstart = atoi(argv[18]);
+      int Nend = atoi(argv[19]);
       string jcc1("jccS");
       string jcc2("jccD");
       jcc1 += argv[17];
@@ -902,10 +906,10 @@ int main(int argc, char* argv[]){
     //    opa.runTrials(mycc, &n1, f, g, SIGycc,T,o);
     //    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
       double mean4,mean6;
-      mycomp << " OPA for JCC " <<endl;
-      mean4 = opa.runTrials(myjcc1,myjcc2,mycomp, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart);
-      mycomp << " \n OPA for OPA-JCC "<<endl;
-      mean6 = opa.runTrials(myoj1,myoj2,mycomp, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart);
+      mycomp << " OPA for JCC, start:"<<Nstart<<", end: "<<Nend<<endl;
+      mean4 = opa.runTrials(myjcc1,myjcc2,mycomp, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart,Nend);
+      mycomp << " \n OPA for OPA-JCC, start:"<<Nstart<<", end: "<<Nend<<endl;
+      mean6 = opa.runTrials(myoj1,myoj2,mycomp, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart,Nend);
 
     /*    for(int n=0;n<Nl;n++){
       if(check(n)){
@@ -979,7 +983,7 @@ int main(int argc, char* argv[]){
 	mycomp << "max  = " << stats_r3.max()  << endl;
 	mycomp<<endl;
     */
-	mycomp<<"SJ N1"<<"\t"<<s4<<endl;
+    	mycomp<<"SJ N1"<<"\t"<<s4<<endl;
 	mycomp<<"C4: "<<o4<<endl;
 	mycomp<<"r4 - "<<r4<<endl;
 	mycomp<<"ls4 - "<<accu(xdes.t()*z4)<<endl;
