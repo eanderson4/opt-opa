@@ -616,7 +616,7 @@ void iopa::runTrials(ostream & out, ostream & out2, ijn1 * n1,vec f, vec g, mat 
 }
 
 
-double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart,int Nend){
+double iopa::runTrials(ostream & out, ostream & out2,ostream & out3, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num,double cost,int Nstart,int Nend){
   int Nl = f.n_elem; 
   std::clock_t start;
   double duration;
@@ -693,7 +693,7 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
 	z0=z;
 
 
-
+	out3<<n<<" ";
 
   
   running_stat<double> stats_ls;
@@ -791,13 +791,15 @@ double iopa::runTrials(ostream & out, ostream & out2, ostream & mycomp, ijn1 * n
       stats_stages(stages);   
       statsT_ls(loadshed);
       statsT_stages(stages);   
-
+      
+      out3<<loadshed<<" ";
 
     }
     
     ig.unmodGrid(mod);
   }
   
+  out3<<endl;
 
   //output inmportatnt informationation!
   /*  out<<"\n"<<endl;

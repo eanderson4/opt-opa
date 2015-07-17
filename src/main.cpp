@@ -877,20 +877,27 @@ int main(int argc, char* argv[]){
       int Nend = atoi(argv[19]);
       string jcc1("jccS");
       string jcc2("jccD");
+      string jcc3("jccC");
       jcc1 += argv[17];
       jcc2 += argv[17];
+      jcc3 += argv[17];
       jcc1 += ".out";
       jcc2 += ".out";
+      jcc3 += ".out";
    
       ofstream myjcc1( jcc1.c_str() );
       ofstream myjcc2( jcc2.c_str() );
+      ofstream myjcc3( jcc3.c_str() );
 
       string oj1("ojS");
       string oj2("ojD");
+      string oj3("ojC");
       oj1 += argv[17];
       oj2 += argv[17];
+      oj3 += argv[17];
       oj1 += ".out";
       oj2 += ".out";
+      oj3 += ".out";
 
       string comp("comp");
       comp += argv[17];
@@ -898,6 +905,7 @@ int main(int argc, char* argv[]){
 
       ofstream myoj1( oj1.c_str() );
       ofstream myoj2( oj2.c_str() );
+      ofstream myoj3( oj3.c_str() );
       ofstream mycomp( comp.c_str() );
       iopa opa(gr,&gc,opaL,opap,L,p);
 
@@ -907,9 +915,9 @@ int main(int argc, char* argv[]){
     //    opa.runTrials(myjcc, &n1, f3, g3, SIGy3,T,o3);
       double mean4,mean6;
       mycomp << " OPA for JCC, start:"<<Nstart<<", end: "<<Nend<<endl;
-      mean4 = opa.runTrials(myjcc1,myjcc2,mycomp, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart,Nend);
+      mean4 = opa.runTrials(myjcc1,myjcc2,myjcc3,mycomp, &n1, f4, g4, SIGy4,xdes,T,o4,Nstart,Nend);
       mycomp << " \n OPA for OPA-JCC, start:"<<Nstart<<", end: "<<Nend<<endl;
-      mean6 = opa.runTrials(myoj1,myoj2,mycomp, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart,Nend);
+      mean6 = opa.runTrials(myoj1,myoj2,myoj3,mycomp, &n1, f6, g6, SIGy6,xdes,T,o6,Nstart,Nend);
 
     /*    for(int n=0;n<Nl;n++){
       if(check(n)){

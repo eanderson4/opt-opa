@@ -16,7 +16,7 @@ class iopa {
   void runTrials(ostream & out,vec z,int N,double num);
   void runTrials(ostream & out,ijn1 * n1,vec f, vec g, mat SIG,double num, double cost);
   void runTrials(ostream & out,ostream & out2, ijn1 * n1,vec f, vec g, mat SIG,double num, double cost);
-  double runTrials(ostream & out,ostream & out2, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num, double cost,int Nstart, int Nend);
+  double runTrials(ostream & out,ostream & out2,ostream & out3, ostream & mycomp, ijn1 * n1,vec f, vec g, mat SIG,vec xdes,double num, double cost,int Nstart, int Nend);
 
  private:
   
