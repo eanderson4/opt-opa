@@ -37,23 +37,37 @@ LIBS = ${CPLEX_LIBS}
 SRCSALL = $(wildcard src/*.cpp)
 MAIN = $(wildcard src/main*cpp)
 SRCSWOMAIN = $(filter-out ${MAIN}, $(SRCSALL))
-SRCS = ${SRCSWOMAIN} src/main.cpp
+SRCSMAIN = ${SRCSWOMAIN} src/main.cpp
+SRCSDB = ${SRCSWOMAIN} src/main-db.cpp
+SRCSDESIGN = ${SRCSWOMAIN} src/main-design.cpp
 
-OBJS = ${SRCS:.cpp=.o}
+
+OBJSMAIN = ${SRCSMAIN:.cpp=.o}
+OBJSDB = ${SRCSDB:.cpp=.o}
+OBJSDESIGN = ${SRCSDESIGN:.cpp=.o}
 
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} ${INCS} -c $< -o $@
 
-pow: ${OBJS}
-	${CXX} ${CXXFLAGS} ${INCS} ${OBJS} ${LIBS}  -o $@ 
+pow: ${OBJSMAIN}
+	${CXX} ${CXXFLAGS} ${INCS} ${OBJSMAIN} ${LIBS}  -o $@ 
+
+db: ${OBJSDB}
+	g++ ${CXXFLAGS} ${INCS} ${OBJSDB} ${LIBS}  -o DB
+
+des: ${OBJSDESIGN}
+	g++ ${CXXFLAGS} ${INCS} ${OBJSDESIGN} ${LIBS}  -o des
+
 
 depend:
-	$(CXX) -MM ${CXXFLAGS} ${INCS} ${SRCS} > prog.d
+	$(CXX) -MM ${CXXFLAGS} ${INCS} ${SRCSALL} > prog.d
 
 
 clean:
-	rm -f ${OBJS}
+	rm -f ${OBJSMAIN}
+	rm -f ${OBJSDB}
+	rm -f ${OBJSDESIGN}
 	rm -f *~
 	rm -f src/*~
 	rm -f case*.in

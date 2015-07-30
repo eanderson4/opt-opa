@@ -3,7 +3,7 @@
 #include <ctime>
 #include "sqlinter.h"
 #include "jsoninter.h"
-#include "grid_rts.h"
+//#include "grid_rts.h"
 #include "isjn.h"
 #include "iopa.h"
 
@@ -29,8 +29,8 @@ int main(int argc, char* argv[]){
     bool loaded=false;
     if (db_name.find(str_rts) != string::npos){
       //RTS GRID
-      gr = new grid_rts;
-      loaded=db.loadRTS(*gr);
+      //      gr = new grid_rts;
+      //     loaded=db.loadRTS(*gr);
     }
     else{
       gr = new grid;
